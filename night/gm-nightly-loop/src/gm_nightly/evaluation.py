@@ -106,6 +106,7 @@ def evaluate(tasks: list[Task], predict: Callable[[Task], str | Prediction]) -> 
         cases.append(
             {
                 "id": task.id,
+                "prompt": task.question,
                 "suite": task.split,
                 "kind": task.kind,
                 "score": score,

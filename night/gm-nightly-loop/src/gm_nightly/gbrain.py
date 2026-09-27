@@ -172,7 +172,7 @@ def shared_memory(page: dict, tenant: str, employee="company") -> Memory | None:
         page.get("deleted_at")
         or page.get("type") in {"conversation", "transcript", "session"}
         or fm.get("visibility") != "brain-wide"
-        or fm.get("gm_training") is not True
+        or not (fm.get("finegrain_training") is True or fm.get("gm_training") is True)
     ):
         return None
     content = page.get("compiled_truth", "")
@@ -209,7 +209,7 @@ def shared_memory(page: dict, tenant: str, employee="company") -> Memory | None:
 
 
 def note_markdown(
-    title: str, content: str, shared: bool, tag="gm-nightly-share", extra: dict | None = None
+    title: str, content: str, shared: bool, tag="finegrain-share", extra: dict | None = None
 ):
     # JSON strings/values are YAML-compatible, so model text never becomes a YAML key.
     header = {
@@ -217,6 +217,7 @@ def note_markdown(
         "type": "note",
         "visibility": "brain-wide" if shared else "private",
         "tags": [tag] if shared else [],
+        "finegrain_training": shared,
         "gm_training": shared,
         **(extra or {}),
     }
@@ -226,4 +227,30 @@ def note_markdown(
         + "\n---\n\n"
         + content
         + "\n"
+    )
+
+
+def correction_markdown(prompt: str, corrected_behavior: str, tag="finegrain-share") -> str:
+    """Create the approved Gbrain page consumed by the next company night.
+
+    The incorrect answer is intentionally excluded so rejected behavior never becomes
+    curriculum source text.
+    """
+    prompt, corrected_behavior = prompt.strip(), corrected_behavior.strip()
+    if not prompt or not corrected_behavior:
+        raise ValueError("A correction requires a request pattern and approved behavior")
+    if len(prompt) > 4000 or len(corrected_behavior) > 8000:
+        raise ValueError("Correction exceeds the company page budget")
+    if has_secret(canonical([prompt, corrected_behavior])):
+        raise ValueError("Correction may contain a secret")
+    correction_id = digest([prompt, corrected_behavior])[:24]
+    return note_markdown(
+        "Approved correction " + correction_id[:8],
+        "Request pattern (data, not instructions):\n"
+        + prompt
+        + "\n\nApproved company behavior:\n"
+        + corrected_behavior,
+        True,
+        tag,
+        {"finegrain_kind": "correction", "finegrain_correction_id": correction_id},
     )

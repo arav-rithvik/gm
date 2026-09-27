@@ -24,10 +24,11 @@ That produces a complete inspectable fixture dataset with all four task families
 export RIVER_API_KEY=...                 # keep this outside Git
 export GM_BASE_MODEL=Qwen/Qwen3.5-9B    # must match Part 1
 export GM_CHECKPOINT=river://...         # checkpoint produced by Part 1
+export GM_LORA_RANK=16                   # must match Part 1
 make night
 ```
 
-`GM_CHECKPOINT` is the critical handoff: the first company run evaluates GM, fine-tunes from GM, evaluates the candidate, and promotes it only if the gate passes. Later runs resume from the last promoted company checkpoint with replay.
+`GM_CHECKPOINT` is the critical handoff: the first company run evaluates GM, fine-tunes from GM, evaluates the candidate, and promotes it only if the gate passes. `GM_BASE_MODEL` and `GM_LORA_RANK` prevent incompatible adapter continuation. Later runs resume from the last promoted company checkpoint with replay.
 
 ```text
 Claude / Codex / Pi / other agents
@@ -118,7 +119,9 @@ Claude, Codex, and Pi JSONL histories are read locally with incremental cursors,
 
 The initial compiler selects explicit user-stated decisions and conventions, scrubs known secrets, and saves those notes through Gbrain's official page API. It is conservative: it does not claim to understand every trace or infer reliable facts from assistant guesses. Set `memory_compiler = "local-model"`, `local_model`, and a loopback `local_model_url` in `[capture]` to use an installed local model for grounded note selection. Gbrain's existing agent memory and synthesis can continue independently.
 
-GM Nightly Loop relays only Gbrain pages carrying **both** the `gm-nightly-share` tag and `gm_training: true`, with `visibility: brain-wide`. Conversation/transcript/session pages are excluded. The relay sends compiled body/title and minimal provenance; never the trace journal, raw-data sidecars, timeline, credentials, or local paths. Upstream OAuth and revision checks enforce company writes. Removing approval withdraws a previously relayed page on the next successful cycle.
+GM Nightly Loop relays only Gbrain pages carrying **both** the `finegrain-share` tag and `finegrain_training: true`, with `visibility: brain-wide`. Existing pages using the earlier `gm_training: true` marker remain readable for compatibility. Conversation/transcript/session pages are excluded. The relay sends compiled body/title and minimal provenance; never the trace journal, raw-data sidecars, timeline, credentials, or local paths. Upstream OAuth and revision checks enforce company writes. Removing approval withdraws a previously relayed page on the next successful cycle.
+
+The Arena's **Correct this** action writes the request and approved behavior as one of these shared Gbrain pages. It never writes the rejected model answer into curriculum source text. `gm_nightly.gbrain.correction_markdown` provides the canonical page format.
 
 For other agents, add `capture_sources` in `[capture]` using TOML inline tables:
 

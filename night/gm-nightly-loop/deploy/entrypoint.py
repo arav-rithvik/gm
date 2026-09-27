@@ -110,7 +110,7 @@ elif mode == "trainer":
                         "kind": "gbrain_cli",
                         "home": "/data",
                         "source_id": "shared",
-                        "tag": "gm-nightly-share",
+                        "tag": "finegrain-share",
                     }
                 ],
             },

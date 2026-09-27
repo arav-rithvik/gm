@@ -9,7 +9,7 @@ GM_NIGHT_CONFIG ?= $(PART2_DIR)/examples/gm-part2.toml
 .PHONY: setup data test quickstart part2-setup part2-demo part2-test night
 
 setup: $(GBRAIN_DIR)
-	uv venv -q
+	test -x .venv/bin/python || uv venv -q
 	uv pip install -q -r requirements.txt
 
 $(GBRAIN_DIR):

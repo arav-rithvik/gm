@@ -28,7 +28,7 @@ class Config:
     gbrain_source: str = "default"
     company_home: str = ""
     company_source: str = "shared"
-    share_tag: str = "gm-nightly-share"
+    share_tag: str = "finegrain-share"
     gbrain_ingest: bool = True
     state_dir: Path = Path(".gm/nightly")
     teacher: str = "demo"
@@ -174,6 +174,11 @@ def load_config(path: str | Path) -> Config:
         flat["student_model"] = os.environ["GM_BASE_MODEL"]
     if os.environ.get("GM_CHECKPOINT"):
         flat["foundation_checkpoint"] = os.environ["GM_CHECKPOINT"]
+    if os.environ.get("GM_LORA_RANK"):
+        try:
+            flat["lora_rank"] = int(os.environ["GM_LORA_RANK"])
+        except ValueError:
+            raise ValueError("GM_LORA_RANK must be an integer") from None
     state = Path(flat.get("state_dir", ".gm/nightly")).expanduser()
     flat["state_dir"] = state if state.is_absolute() else path.parent / state
     if flat.get("credentials_file"):

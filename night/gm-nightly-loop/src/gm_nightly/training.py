@@ -155,6 +155,9 @@ def train_dataset(config: Config, path: Path, provider: TrainingProvider, store:
         )
     parent = store.get("promoted")
     checkpoint = config.foundation_checkpoint or None
+    baseline = (
+        {"student_model": config.student_model, "checkpoint": checkpoint} if checkpoint else None
+    )
     reset_reason = "gm_foundation" if checkpoint else "first_run"
     if parent:
         old = parent["training_lineage"]
@@ -165,10 +168,16 @@ def train_dataset(config: Config, path: Path, provider: TrainingProvider, store:
         )
         if compatible and not changed:
             checkpoint = parent["checkpoint"]
+            baseline = parent
             reset_reason = "resume_with_replay"
         else:
             reset_reason = "source_revised_or_removed" if changed else "model_configuration_changed"
             checkpoint = config.foundation_checkpoint or None
+            baseline = (
+                {"student_model": config.student_model, "checkpoint": checkpoint}
+                if checkpoint
+                else None
+            )
             # Withdraw the local current-model pointer immediately; old weights cannot be unlearned
             # by removing a dataset row. Remote checkpoint deletion is a separate provider operation.
             store.put("promoted", None)
@@ -183,7 +192,7 @@ def train_dataset(config: Config, path: Path, provider: TrainingProvider, store:
     started = datetime.now(UTC).isoformat()
     store.put("active_training", {"key": key, "dataset": manifest["id"], "started_at": started})
     # Never auto-retry a failed remote mutation: its result may have committed on River.
-    result = provider.train(tasks, config, checkpoint, baseline=parent)
+    result = provider.train(tasks, config, checkpoint, baseline=baseline)
     result.update(
         {
             "dataset": manifest["id"],

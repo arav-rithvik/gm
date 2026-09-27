@@ -1,6 +1,6 @@
 .PHONY: setup demo test check mac server night
 setup:
-	uv venv --python 3.12
+	test -x .venv/bin/python || uv venv --python 3.12
 	uv pip install -e '.[dev,river]'
 demo:
 	.venv/bin/gm-nightly --config examples/fixtures.toml compile
