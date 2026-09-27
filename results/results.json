@@ -1,6 +1,6 @@
 {
   "mock": false,
-  "generated_at": "2026-09-27T23:36:17Z",
+  "generated_at": "2026-09-27T23:54:37Z",
   "tasks": [
     "resolver-heldout",
     "routing-eval-heldout"
@@ -68,6 +68,30 @@
           "accuracy": 0.0177,
           "p50_latency_ms": 640,
           "cost_per_task_usd": 5e-06,
+          "n": 283
+        }
+      }
+    },
+    {
+      "name": "GM",
+      "model_id": "river://cff34a73-b359-4692-ba33-93c3362c811f/weights/gm-v1-20260927-235027",
+      "served_via": "api.river.ai",
+      "providers": [
+        "river"
+      ],
+      "reasoning": "off",
+      "prompt_tokens": 45,
+      "scores": {
+        "resolver-heldout": {
+          "accuracy": 0.4,
+          "p50_latency_ms": 3078,
+          "cost_per_task_usd": null,
+          "n": 5
+        },
+        "routing-eval-heldout": {
+          "accuracy": 0.8445,
+          "p50_latency_ms": 2552,
+          "cost_per_task_usd": null,
           "n": 283
         }
       }
