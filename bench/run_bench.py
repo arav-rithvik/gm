@@ -40,6 +40,8 @@ BASELINE_RUNS = {  # Garry's receipts, scored on the variant his SKILL.md ships
 BASELINE_VARIANT = "functional-areas"
 MAX_TOKENS = 256  # reasoning is off, so a skill name fits easily
 RETRIES = 3
+RIVER_URL = "https://api.river.ai"
+_river = None  # River client, created on first use
 THINK = re.compile(r"<think>.*?(</think>|$)", re.DOTALL | re.IGNORECASE)
 SKILL_PATH = re.compile(r"^skills/([a-z0-9-]+)/skill\.md$")  # RESOLVER.md names skills by path
 
@@ -112,13 +114,46 @@ def leak_count(training: Path, gbrain: Path) -> dict:
 
 
 def endpoint(prefix: str) -> tuple[str, str, str] | None:
+    checkpoint = os.environ.get(f"{prefix}_CHECKPOINT", "")
+    if checkpoint:  # a River checkpoint, served from River's sampler
+        return RIVER_URL, checkpoint, os.environ.get(f"{prefix}_BASE_MODEL", "Qwen/Qwen3.5-9B")
     url, model = os.environ.get(f"{prefix}_BASE_URL", ""), os.environ.get(f"{prefix}_MODEL", "")
     if not url.startswith("http") or "..." in url or not model:
         return None
     return url.rstrip("/") + "/chat/completions", model, os.environ.get(f"{prefix}_API_KEY", "")
 
 
+def river_chat(ep: tuple[str, str, str], system: str, user: str) -> dict:
+    global _river
+    import river_client as river
+
+    if _river is None:
+        _river = river.Client(api_key=os.environ["RIVER_API_KEY"], timeout=120)
+    _, checkpoint, base_model = ep
+    messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+    for attempt in range(RETRIES):
+        if attempt:
+            time.sleep(2 ** attempt)
+        start = time.perf_counter()
+        result = _river.chat_complete_from_checkpoint(
+            messages, checkpoint_path=checkpoint, base_model=base_model,
+            max_tokens=MAX_TOKENS, temperature=0.0,
+            # River's sampler thinks by default; GM is trained to answer directly
+            chat_template_kwargs={"enable_thinking": False})
+        latency = (time.perf_counter() - start) * 1000
+        if result.status_code == 200:
+            data = json.loads(result.response_json)
+            usage = data.get("usage") or {}
+            return {"text": data["choices"][0]["message"].get("content") or "",
+                    "latency_ms": latency, "prompt_tokens": usage.get("prompt_tokens"),
+                    "cost_usd": None, "provider": "river"}
+        error = f"River HTTP {result.status_code}"
+    raise BenchError(error)
+
+
 def chat(ep: tuple[str, str, str], system: str, user: str) -> dict:
+    if ep[0] == RIVER_URL:
+        return river_chat(ep, system, user)
     url, model, key = ep
     body = json.dumps({
         "model": model,
@@ -214,7 +249,7 @@ def main() -> int:
         prefix, system = configs[name]
         ep = endpoint(prefix)
         if ep is None:
-            print(f"skip {name}: set {prefix}_BASE_URL and {prefix}_MODEL in .env")
+            print(f"skip {name}: set {prefix}_CHECKPOINT, or {prefix}_BASE_URL and {prefix}_MODEL, in .env")
             continue
         try:
             models[name], cases = run_model(name, ep, system, tasks, skill_names, args.workers)
