@@ -35,7 +35,7 @@ def teacher_prompt(skill: dict, count: int) -> str:
 
 
 def ask_wordings(teacher: Teacher, skill: dict, count: int) -> list[str]:
-    for _ in range(2):
+    for _ in range(3):
         try:
             reply = extract_json(teacher.chat(TEACHER_SYSTEM, teacher_prompt(skill, count)))
         except TeacherError as exc:
@@ -43,7 +43,9 @@ def ask_wordings(teacher: Teacher, skill: dict, count: int) -> list[str]:
             continue
         if isinstance(reply, list):
             return [w.strip() for w in reply if isinstance(w, str) and w.strip()]
-    raise TeacherError(f"{skill['name']}: teacher gave no usable wordings")
+    print(f"  {skill['name']}: no usable wordings after 3 tries, keeping its triggers only",
+          file=sys.stderr)
+    return []
 
 
 def pair(text: str, skill: str, source: str) -> dict:
@@ -106,11 +108,7 @@ def main() -> int:
     eval_intents = load_eval_intents(args.gbrain)
 
     with ThreadPoolExecutor(args.workers) as pool:
-        try:
-            wordings = list(pool.map(lambda s: ask_wordings(teacher, s, args.per_skill), skills))
-        except TeacherError as exc:
-            print(f"error: {exc}", file=sys.stderr)
-            return 1
+        wordings = list(pool.map(lambda s: ask_wordings(teacher, s, args.per_skill), skills))
 
     candidates = []
     for skill, generated in zip(skills, wordings):
@@ -118,7 +116,8 @@ def main() -> int:
         candidates += [(w, skill["name"], "teacher") for w in generated]
 
     pairs, stats = build_pairs(candidates, LeakFilter(eval_intents))
-    stats.update(eval_intents=len(eval_intents), skills=len(skills), teacher_model=teacher.model)
+    stats.update(eval_intents=len(eval_intents), skills=len(skills), teacher_model=teacher.model,
+                 skills_without_wordings=[s["name"] for s, w in zip(skills, wordings) if not w])
 
     args.out.write_text("".join(json.dumps(p, ensure_ascii=False) + "\n" for p in pairs))
     args.stats.write_text(json.dumps(stats, indent=2) + "\n")

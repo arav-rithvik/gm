@@ -57,9 +57,13 @@ class Teacher:
         })
         data = self._post(request)
         try:
-            return data["choices"][0]["message"]["content"]
+            choice = data["choices"][0]
+            content = choice["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
             raise TeacherError(f"unexpected response: {str(data)[:300]}") from exc
+        if not content:  # some OpenRouter providers return null content
+            raise TeacherError(f"empty reply (finish_reason={choice.get('finish_reason')})")
+        return content
 
     def _post(self, request: urllib.request.Request) -> dict:
         """Send the request. Retry rate limits, server errors and dropped connections."""
