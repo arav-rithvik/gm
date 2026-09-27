@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GM Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/gbrain.css">
+<style>
+  :root {
+    /* Claude side */
+    --c-bg:#f5f4ed; --c-ink:#3d3929; --c-muted:#8a8472; --c-bubble:#e9e6dc; --c-rule:#e2ded2; --c-coral:#d97757;
+    /* GM side: GBrain dusk palette (gbrain.io) */
+    --g-bg:#0f2442; --g-ink:#ece6d8; --g-muted:#8fa2c2; --g-rule:#223a60; --g-dot:#2b4470; --g-teal:#f4b860; --g-teal-soft:rgba(244,184,96,.22); --g-amber:#f59e7a;
+    --g-peri:#a9c1ee; --g-window:#132b4f; --g-ok:#9fe3c1;
+    --red:#b42318;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; }
+  body { background:var(--g-bg); color:var(--g-ink); font:15px/1.45 Inter, system-ui, sans-serif; display:flex; overflow:hidden; }
+  .arena-col { flex:1; min-width:0; display:flex; flex-direction:column; }
+
+  /* ---------- top bar ---------- */
+  .bar { display:flex; align-items:center; gap:12px; padding:14px 24px; background:#141414; border-bottom:1px solid #262626; color:#ededed; }
+  .brand { font:700 22px Inter, sans-serif; letter-spacing:-.03em; white-space:nowrap; }
+  .brand span { color:#8a8a8a; font:400 15px Inter, sans-serif; letter-spacing:0; margin-left:6px; }
+  .bar select, .bar input { font:inherit; height:42px; border:1px solid #333; border-radius:10px; background:#1f1f1f; color:#ededed; padding:0 12px; }
+  .bar select { max-width:230px; color:#c9c9c9; }
+  .bar input { flex:1; font-size:17px; color:#ece6d8; }
+  .bar input::placeholder { color:#8a8a8a; }
+  .bar input:focus, .bar select:focus { outline:2px solid var(--g-peri); outline-offset:-1px; }
+  .btn { height:42px; padding:0 18px; border-radius:8px; border:0; font:600 14px Inter, sans-serif; cursor:pointer; white-space:nowrap; }
+  .btn.run { background:var(--g-peri); color:#0b1c36; }
+  .btn.next { background:transparent; border:1.5px solid #e8e8e8; color:#fff; }
+  .tag { font:500 12px 'JetBrains Mono', monospace; padding:4px 8px; border-radius:6px; background:#1b3257; color:#8fa2c2; white-space:nowrap; }
+  .tag.held { background:rgba(169,193,238,.18); color:var(--g-peri); }
+
+  .split { flex:1; display:grid; grid-template-columns:1fr 1fr; min-height:0; }
+  .pane { display:flex; flex-direction:column; min-height:0; padding:22px 28px 0; }
+  .stats { display:grid; grid-template-columns:1.6fr 1fr 1fr; margin:0 -28px; border-top:1px solid; }
+  .stat { padding:14px 28px 16px; }
+  .stat + .stat { border-left:1px solid; }
+  .label { font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+  .val { font:600 24px 'JetBrains Mono', monospace; letter-spacing:-.02em; }
+  .val.big { font-size:44px; line-height:1.05; }
+
+  /* ---------- Claude pane ---------- */
+  .claude { background:var(--c-bg); color:var(--c-ink); border-right:1px solid var(--c-rule); }
+  .c-head { display:flex; align-items:center; gap:10px; }
+  .c-logo { color:var(--c-coral); font-size:26px; line-height:1; }
+  .c-name { font:500 22px 'Source Serif 4', serif; }
+  .c-model { font-size:13px; color:var(--c-muted); border:1px solid var(--c-rule); border-radius:999px; padding:2px 10px; }
+  .c-chat { flex:1; display:flex; flex-direction:column; gap:18px; padding:26px 0 18px; min-height:0; }
+  .c-user { align-self:flex-end; max-width:85%; background:var(--c-bubble); border-radius:18px; padding:12px 18px; font:400 17px/1.45 'Source Serif 4', serif; min-height:48px; }
+  .c-reply { display:flex; gap:12px; align-items:flex-start; }
+  .c-reply .c-logo { font-size:22px; margin-top:6px; }
+  .c-reply.thinking .c-logo { animation:spin 1.6s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .c-answer { font:500 30px 'Source Serif 4', serif; word-break:break-word; }
+  .c-ctx { margin-top:auto; border:1px solid var(--c-rule); border-radius:12px; background:#fbfaf6; overflow:hidden; }
+  .c-ctx-head { display:flex; justify-content:space-between; padding:9px 14px; font-size:12px; color:var(--c-muted); border-bottom:1px solid var(--c-rule); }
+  .c-ctx-body { height:132px; overflow:hidden; position:relative; font:10.5px/1.5 'JetBrains Mono', monospace; color:#9d9784; padding:0 14px;
+    -webkit-mask-image:linear-gradient(transparent, #000 25%, #000 75%, transparent); mask-image:linear-gradient(transparent, #000 25%, #000 75%, transparent); }
+  .c-ctx-text { white-space:pre-wrap; }
+  .claude.reading .c-ctx-text { animation:scroll 2.4s linear infinite; }
+  @keyframes scroll { from { transform:translateY(0); } to { transform:translateY(-50%); } }
+  .claude .stats, .claude .stat + .stat { border-color:var(--c-rule); }
+  .claude .label { color:var(--c-muted); }
+
+  /* ---------- GM pane ---------- */
+  .gm { background:radial-gradient(circle at 88% 6%, rgba(255,236,190,.16), transparent 22%), linear-gradient(180deg, #0f2442 0%, #13294a 100%); color:var(--g-ink); }
+  .g-head { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .g-bot { width:40px; height:40px; border-radius:10px; box-shadow:0 0 0 1px #223a60; }
+  .g-name { font:700 30px 'JetBrains Mono', monospace; letter-spacing:-.05em; }
+  .g-name i { font-style:normal; color:var(--g-teal); text-shadow:0 0 18px rgba(244,184,96,.55); }
+  .g-sub { color:var(--g-muted); font-size:14px; }
+  .g-pill { margin-left:auto; font:600 12px 'JetBrains Mono', monospace; color:#0b1c36; background:var(--g-peri); padding:5px 11px; border-radius:7px; }
+  .g-req { margin:18px 0 12px; font:400 15px 'JetBrains Mono', monospace; color:var(--g-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:22px; }
+  .g-req b { color:var(--g-ink); font-weight:500; }
+  .map { flex:1; min-height:0; display:grid; grid-template-columns:repeat(4, 1fr); grid-auto-rows:1fr; gap:10px; }
+  .area { border:1px solid var(--g-rule); border-radius:12px; padding:12px 12px; overflow:hidden; background:var(--g-window); box-shadow:inset 0 0 0 4px #0f2442; transition:border-color .25s, box-shadow .25s, opacity .25s; }
+  .area-name { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--g-muted); margin-bottom:7px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dots { display:flex; flex-wrap:wrap; gap:6px; }
+  .dot { width:11px; height:11px; border-radius:50%; background:var(--g-dot); transition:all .25s; }
+  .map.scanning .dot { animation:pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 50% { background:#4d6a9a; } }
+  .map.routed .area:not(.hit) { opacity:.4; }
+  .area.hit { border-color:#f4b860; background:radial-gradient(circle at 50% 40%, #ffd99a 0%, #f4b860 38%, #b8742f 100%); box-shadow:0 0 42px rgba(244,184,96,.55), inset 0 0 0 4px rgba(15,36,66,.35); }
+  .area.hit .area-name { color:#3a2208; }
+  .area.hit .dot { background:rgba(58,34,8,.28); }
+  .area.hit.near { background:radial-gradient(circle at 50% 40%, #ffd2bd 0%, #f59e7a 45%, #a85a3c 100%); border-color:#f59e7a; box-shadow:0 0 36px rgba(245,158,122,.5); }
+  .area.hit .dot.hit, .dot.hit { background:#fff7e6; transform:scale(2); box-shadow:0 0 14px 4px rgba(255,247,230,.9); }
+  .hit-label { font:700 13px 'JetBrains Mono', monospace; color:#3a2208; margin-top:8px; }
+  .g-answer { display:flex; align-items:baseline; gap:14px; padding:14px 0 16px; min-height:74px; }
+  .g-slug { font:700 30px 'JetBrains Mono', monospace; letter-spacing:-.03em; color:var(--g-teal); text-shadow:0 0 22px rgba(244,184,96,.45); word-break:break-word; }
+  .gm .stats, .gm .stat + .stat { border-color:var(--g-rule); }
+  .gm .label { color:var(--g-muted); }
+  .gm .val.big { color:var(--g-teal); text-shadow:0 0 22px rgba(244,184,96,.4); }
+  .gm .ok { color:var(--g-ok); } .gm .near { color:var(--g-amber); } .gm .bad { color:#ff8a80; }
+  .gm .mock { color:#ff8a80; }
+
+  .verdict { font:600 14px Inter, sans-serif; }
+  .ok { color:#0f766e; } .near { color:#b45309; } .bad { color:var(--red); }
+  .mock { color:var(--red); font:600 12px 'JetBrains Mono', monospace; }
+
+  @media (max-width:900px) {
+    body { overflow:auto; }
+    .split { grid-template-columns:1fr; }
+    .bar { flex-wrap:wrap; }
+    .map { grid-template-columns:repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body data-page="arena">
+<div class="arena-col">
+<header class="bar">
+  <div class="brand">Arena<span>Claude vs GM</span></div>
+  <select id="cases" aria-label="Garry's eval cases"><option value="">Garry's eval cases…</option></select>
+  <input id="q" placeholder="Ask GBrain to do something…" autocomplete="off">
+  <span class="tag" id="split" hidden></span>
+  <button class="btn run" id="run">Run ▸</button>
+  <button class="btn next" id="next">Next case</button>
+</header>
+
+<main class="split">
+  <!-- Claude: reads Garry's resolver on every call -->
+  <section class="pane claude" id="claude">
+    <div class="c-head"><span class="c-logo">✳</span><span class="c-name">Claude</span><span class="c-model">Sonnet 5</span></div>
+    <div class="c-chat">
+      <div class="c-user" id="c-user"></div>
+      <div class="c-reply" id="c-reply" hidden><span class="c-logo">✳</span><div><div class="c-answer" id="c-answer"></div><div class="verdict" id="c-verdict"></div></div></div>
+      <div class="c-ctx">
+        <div class="c-ctx-head"><span>Garry's resolver, sent with every request</span><span id="c-bytes"></span></div>
+        <div class="c-ctx-body"><div class="c-ctx-text" id="c-ctx"></div></div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="label">Prompt tokens</div><div class="val big" id="c-tok">—</div></div>
+      <div class="stat"><div class="label">Time</div><div class="val" id="c-time">—</div></div>
+      <div class="stat"><div class="label">Cost</div><div class="val" id="c-cost">—</div></div>
+    </div>
+  </section>
+
+  <!-- GM: the resolver lives in the weights -->
+  <section class="pane gm" id="gm">
+    <div class="g-head">
+      <img class="g-bot" src="/gm-bot.png" alt=""><span class="g-name">G<i>M</i></span>
+      <span class="g-sub">GBrain, compiled into weights</span>
+      <span class="g-pill">0 bytes of resolver</span>
+    </div>
+    <div class="g-req" id="g-req"></div>
+    <div class="map" id="map"></div>
+    <div class="g-answer"><span class="g-slug" id="g-answer"></span><span class="verdict" id="g-verdict"></span></div>
+    <div class="stats">
+      <div class="stat"><div class="label">Prompt tokens</div><div class="val big" id="g-tok">—</div></div>
+      <div class="stat"><div class="label">Time</div><div class="val" id="g-time">—</div></div>
+      <div class="stat"><div class="label">Cost</div><div class="val" id="g-cost">—</div></div>
+    </div>
+  </section>
+</main>
+</div>
+<script src="/shell.js"></script>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let fixtures = [], areas = [], idx = -1;
+
+  const clean = (s) => s.trim().replace(/^[`"'\s]+|[`"'\s.]+$/g, '').toLowerCase();
+  const areaOf = (slug) => areas.find((a) => a.skills.includes(slug));
+  const judge = (got, want) => {
+    if (!want || !got) return null;
+    if (got === want) return { cls: 'ok', text: '✓ exact' };
+    const a = areaOf(want);
+    if (a && a.skills.includes(got)) return { cls: 'near', text: `≈ right area · exact is ${want}` };
+    return { cls: 'bad', text: `✗ expected ${want}` };
+  };
+
+  Promise.all([
+    fetch('/api/fixtures').then((r) => r.text()),
+    fetch('/api/areas').then((r) => r.json()),
+    fetch('/api/resolver').then((r) => r.text()),
+  ]).then(([fx, ar, resolver]) => {
+    fixtures = fx.trim().split('\n').map(JSON.parse);
+    fixtures.sort((a, b) => (a.split === 'held-out' ? -1 : 0) - (b.split === 'held-out' ? -1 : 0));
+    fixtures.forEach((f, i) => $('cases').add(new Option(`${f.split === 'held-out' ? '[held-out] ' : ''}${f.intent}`, i)));
+    areas = ar;
+    $('map').innerHTML = areas.map((a) => `
+      <div class="area" data-slug="${a.slug}">
+        <div class="area-name" title="${a.name}">${a.name}</div>
+        <div class="dots">${a.skills.map((s) => `<span class="dot" data-skill="${s}" title="${s}"></span>`).join('')}</div>
+      </div>`).join('');
+    $('c-ctx').textContent = resolver + '\n' + resolver; // doubled for a seamless scroll loop
+    $('c-bytes').textContent = `${(new Blob([resolver]).size / 1000).toFixed(1)} KB`;
+  });
+
+  function stream(side, prompt, on) {
+    const es = new EventSource(`/api/run?side=${side}&prompt=${encodeURIComponent(prompt)}`);
+    let text = '';
+    const t0 = performance.now();
+    const timeEl = $(side === 'claude' ? 'c-time' : 'g-time');
+    const timer = setInterval(() => (timeEl.textContent = ((performance.now() - t0) / 1000).toFixed(2) + 's'), 30);
+    const stop = () => { clearInterval(timer); es.close(); };
+    es.onmessage = (e) => {
+      const d = JSON.parse(e.data);
+      if (d.text) { text += d.text; on.text?.(text); }
+      if (d.error) { stop(); on.error?.(d.error); }
+      if (d.done) { stop(); timeEl.textContent = (d.ms / 1000).toFixed(2) + 's'; on.done?.(text, d); }
+    };
+    es.onerror = stop;
+  }
+
+  function resetGM() {
+    $('map').className = 'map';
+    document.querySelectorAll('.area').forEach((a) => a.classList.remove('hit', 'near'));
+    document.querySelectorAll('.dot').forEach((d) => d.classList.remove('hit'));
+    document.querySelectorAll('.hit-label').forEach((l) => l.remove());
+  }
+
+  function lightUp(slug, want) {
+    const dot = document.querySelector(`.dot[data-skill="${slug}"]`);
+    $('map').classList.add('routed');
+    if (!dot) return;
+    const area = dot.closest('.area');
+    const v = judge(slug, want);
+    area.classList.add('hit');
+    if (v && v.cls === 'near') area.classList.add('near');
+    dot.classList.add('hit');
+    const label = document.createElement('div');
+    label.className = 'hit-label';
+    label.textContent = slug;
+    area.append(label);
+  }
+
+  function run(prompt) {
+    prompt = prompt.trim();
+    if (!prompt) return;
+    const fx = fixtures.find((f) => f.intent === prompt);
+    const want = fx?.expected_skill;
+    $('split').hidden = !fx;
+    if (fx) { $('split').textContent = fx.split; $('split').className = 'tag' + (fx.split === 'held-out' ? ' held' : ''); }
+
+    // Claude
+    $('c-user').textContent = prompt;
+    $('c-reply').hidden = false;
+    $('c-reply').classList.add('thinking');
+    $('claude').classList.add('reading');
+    $('c-answer').textContent = '';
+    $('c-verdict').textContent = '';
+    ['c-tok', 'c-cost'].forEach((id) => ($(id).textContent = '…'));
+    stream('claude', prompt, {
+      text: (t) => ($('c-answer').textContent = t.trim()),
+      done: (t, d) => {
+        $('c-reply').classList.remove('thinking');
+        $('claude').classList.remove('reading');
+        $('c-tok').textContent = d.inTok.toLocaleString();
+        $('c-cost').textContent = '$' + d.cost.toFixed(4);
+        const v = judge(clean(t), want);
+        if (v) { $('c-verdict').textContent = v.text; $('c-verdict').className = 'verdict ' + v.cls; }
+      },
+      error: (e) => { $('c-reply').classList.remove('thinking'); $('claude').classList.remove('reading'); $('c-answer').textContent = 'error'; $('c-verdict').textContent = e; $('c-verdict').className = 'verdict bad'; },
+    });
+
+    // GM
+    resetGM();
+    $('map').classList.add('scanning');
+    $('g-req').innerHTML = `&gt; <b></b>`;
+    $('g-req').querySelector('b').textContent = prompt;
+    $('g-answer').textContent = '';
+    $('g-verdict').textContent = '';
+    ['g-tok', 'g-cost'].forEach((id) => ($(id).textContent = '…'));
+    stream('gm', prompt, {
+      text: (t) => ($('g-answer').textContent = t.trim()),
+      done: (t, d) => {
+        $('map').classList.remove('scanning');
+        if (d.mock) {
+          $('g-answer').innerHTML = '<span class="mock">MOCK · GM endpoint not connected</span>';
+          ['g-tok', 'g-cost'].forEach((id) => ($(id).textContent = '—'));
+          return;
+        }
+        const slug = clean(t);
+        $('g-tok').textContent = d.inTok.toLocaleString();
+        $('g-cost').textContent = '$' + d.cost.toFixed(4);
+        lightUp(slug, want);
+        const v = judge(slug, want);
+        if (v) { $('g-verdict').textContent = v.text; $('g-verdict').className = 'verdict ' + v.cls; }
+      },
+      error: (e) => { $('map').classList.remove('scanning'); $('g-answer').textContent = 'error'; $('g-verdict').textContent = e; $('g-verdict').className = 'verdict bad'; },
+    });
+  }
+
+  $('run').onclick = () => run($('q').value);
+  $('q').onkeydown = (e) => { if (e.key === 'Enter') run($('q').value); };
+  $('cases').onchange = () => {
+    if ($('cases').value === '') return;
+    idx = Number($('cases').value);
+    $('q').value = fixtures[idx].intent;
+    run($('q').value);
+  };
+  $('next').onclick = () => {
+    idx = (idx + 1) % fixtures.length;
+    $('cases').value = idx;
+    $('q').value = fixtures[idx].intent;
+    run($('q').value);
+  };
+</script>
+</body>
+</html>
