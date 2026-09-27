@@ -4,7 +4,7 @@
 
 > "GBrain gets better the more it's used. Every correction your team makes becomes training data, and GM improves overnight."
 
-GM is an open-weight model trained on [GBrain](https://github.com/garrytan/gbrain)'s skills, named for the brain it learned from. It runs inside [QM](https://github.com/yc-software/qm), trains on [River](https://river.ai), and learns your company every night with [Finegrain](https://github.com/edreisMD/finegrain).
+GM is an open-weight model trained on [GBrain](https://github.com/garrytan/gbrain)'s skills, named for the brain it learned from. It runs inside [QM](https://github.com/yc-software/qm), trains on River, and learns your company every night with [Finegrain](https://github.com/edreisMD/finegrain).
 
 ---
 
@@ -93,6 +93,15 @@ Put keys in `arena/.env` (never committed): `ANTHROPIC_API_KEY` for the Claude s
 
 **Inside QM (Slack):** set `PLUGIN_SKILLS_DIRS=/path/to/gm/qm-skills` in QM's `.env` and start QM. The `gm-route` skill asks GM for every task and turns 👎 and replies into fixes waiting for review.
 
+**The full pipeline:**
+
+```sh
+make routing   # new wordings per skill from an open teacher; eval leaks removed and counted
+make train     # start GM's River SFT job
+make bench     # score Claude, the base model and GM on Garry's held-out set
+make night     # tonight's retrain: collect → examples → train → gate → promote
+```
+
 | Page | What it shows |
 |---|---|
 | `/` Arena | The same request to Claude (with the 13 KB rulebook) and to GM (with none), side by side |
@@ -101,6 +110,30 @@ Put keys in `arena/.env` (never committed): `ANTHROPIC_API_KEY` for the Claude s
 | `/review` | Fixes from Slack waiting for a human to approve |
 
 ---
+
+## Where the lessons come from
+
+| Source | What GM learns from it |
+|---|---|
+| **Review page** | Fixes a teammate made in Slack and a person approved |
+| **Memorable** | Workflows the team actually ran and verified, so GM learns what worked, not only what was fixed |
+| **Finegrain** | Pages each person marked as shared in the company GBrain |
+
+## What's in the repo
+
+| Folder | What's inside |
+|---|---|
+| `arena/` | The GM app: Arena, Scoreboard, Tonight, Review |
+| `qm-skills/gm-route` | The QM skill that asks GM for every task |
+| `skills/` + `skillpack.json` | GBrain skillpack: `gm-compile` and `gm-night` |
+| `data/` | Skill parser, routing pairs, leak filter, approved corrections |
+| `train/` | River SFT job |
+| `bench/` | Benchmark on Garry's eval |
+| `night/` | Nightly loop, lesson sources, regression gate |
+| `evals/` | Routing evals for the skillpack |
+| `tests/` | Unit tests (`make test`) |
+| `results/` | Scores and the latest night run |
+| `docs/` | [Architecture](docs/ARCHITECTURE.md) and the [bootstrap runbook](docs/BOOTSTRAP.md) |
 
 ## Rules we follow
 
@@ -113,8 +146,8 @@ Put keys in `arena/.env` (never committed): `ANTHROPIC_API_KEY` for the Claude s
 
 ## Built with
 
-[GBrain](https://github.com/garrytan/gbrain) · [QM](https://github.com/yc-software/qm) · [River](https://river.ai) · [Finegrain](https://github.com/edreisMD/finegrain)
+[GBrain](https://github.com/garrytan/gbrain) · [QM](https://github.com/yc-software/qm) · River · Memorable · [Finegrain](https://github.com/edreisMD/finegrain)
 
 Built by Arav, Rithvik and the Finegrain team at the YC *Own Your Intelligence* Hackathon, Sep 27, 2026.
 
-`arena/resolver.md` and `arena/prompt-template.txt` come from GBrain (MIT, © Garry Tan).
+MIT license (see [LICENSE](LICENSE)). `arena/resolver.md` and `arena/prompt-template.txt` come from GBrain (MIT, © Garry Tan).
