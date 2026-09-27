@@ -93,7 +93,8 @@ def main() -> int:
     for row in checks:
         prompt = row["messages"][:-1]
         reply = client.chat_complete_from_checkpoint(
-            prompt, checkpoint_path=train_ckpt.path, base_model=BASE_MODEL, max_tokens=64, temperature=0.0
+            prompt, checkpoint_path=train_ckpt.path, base_model=BASE_MODEL, max_tokens=64, temperature=0.0,
+            chat_template_kwargs={"enable_thinking": False},  # trained without thinking, so sample without it
         )
         correct += answer_text(reply) == row["messages"][-1]["content"]
 
