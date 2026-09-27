@@ -44,3 +44,13 @@ def test_good_page_passes():
 def test_bad_pages_fail(change, problem):
     problems = check_page(change(GOOD_PAGE))
     assert any(problem in p for p in problems), problems
+
+
+def test_link_only_items_need_no_citation():
+    page = GOOD_PAGE.replace("<!-- timeline -->", "## See Also\n\n- [Acme Corp](companies/acme-corp.md)\n\n<!-- timeline -->")
+    assert check_page(page) == []
+
+
+def test_two_pages_in_one_reply_fail():
+    problems = check_page(GOOD_PAGE + "\n---\n\n" + GOOD_PAGE)
+    assert "more than one page in the reply" in problems

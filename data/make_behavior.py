@@ -46,8 +46,10 @@ File: <folder>/<slug>.md
 - **YYYY-MM-DD** | <what happened> [Source: ...]
 
 Rules you must follow:
-- Every paragraph and list item carries an inline [Source: ...] citation.
-- Link related people, companies and concepts as [Title](folder/slug.md).
+- Write exactly one page: the page for the note's primary subject.
+- Every paragraph and list item carries an inline [Source: ...] citation,
+  including the Executive Summary. A list item that is only links needs none.
+- Link every person, company and concept you mention as [Title](folder/slug.md).
 - Use real dates from the note. Never write a placeholder.
 """
 

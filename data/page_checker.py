@@ -39,6 +39,11 @@ def blocks(body: str) -> list[str]:
     return out
 
 
+def link_only(block: str) -> bool:
+    """A 'See also' item like '- [Dana](people/dana.md)' is navigation, not a fact."""
+    return not re.search(r"\w", LINK.sub("", block).lstrip("-*> "))
+
+
 def check_page(output: str) -> list[str]:
     """Return a list of problems. An empty list means the page passes."""
     first, _, page = output.partition("\n")
@@ -46,6 +51,8 @@ def check_page(output: str) -> list[str]:
     if not path:
         return ["first line must be 'File: <folder>/<slug>.md'"]
     problems = []
+    if len(re.findall(r"^File: ", output, re.MULTILINE)) > 1:
+        problems.append("more than one page in the reply")
     if path.group(1).startswith("sources/"):
         problems.append("filed in sources/, which is for raw bulk data only")
 
@@ -70,7 +77,7 @@ def check_page(output: str) -> list[str]:
     if not any(TIMELINE_ENTRY.match(b) for b in blocks(timeline)):
         problems.append("timeline has no '- **YYYY-MM-DD** |' entry")
 
-    uncited = [b for b in blocks(body) if not CITATION.search(b)]
+    uncited = [b for b in blocks(body) if not CITATION.search(b) and not link_only(b)]
     if uncited:
         problems.append(f"{len(uncited)} fact(s) without [Source: ...], first: {uncited[0][:80]}")
     if not LINK.search(body):
