@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GM Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/gbrain.css">
+<style>
+  .counts { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:26px; }
+  .count { padding:16px 20px; }
+  .num { font:700 40px/1.15 Inter, sans-serif; letter-spacing:-.03em; margin-top:4px; }
+  .bar2 { display:flex; align-items:center; margin:0 0 12px; }
+  .bar2 h2 { font:600 20px Inter, sans-serif; letter-spacing:-.01em; margin:0; }
+  .bar2 .gb-btn { margin-left:auto; }
+  .item { transition:opacity .3s, transform .3s; }
+  .item.gone { opacity:0; transform:translateX(24px); }
+  .prompt { font-size:18px; font-weight:600; margin-bottom:4px; }
+  .route { font:500 14px 'JetBrains Mono', monospace; color:var(--gb-muted); }
+  .route .was { color:var(--gb-bad); text-decoration:line-through; }
+  .route .now { color:var(--gb-ok); font-weight:700; }
+  .who { font-size:13px; color:var(--gb-muted); margin-top:4px; }
+  .empty { color:var(--gb-muted); padding:22px 6px; }
+  @media (max-width:760px) { .counts { grid-template-columns:1fr; } }
+</style>
+</head>
+<body class="gb" data-page="review">
+<div class="gb-main"><div class="gb-page">
+  <div class="gb-head"><h1>Review</h1><span class="right">Corrections from Slack</span></div>
+  <p class="gb-lede">When someone on the team fixes a route in Slack, it waits here. Nothing trains GM until a person approves it.</p>
+
+  <div class="counts">
+    <div class="gb-win count"><div class="gb-label">Waiting for review</div><div class="num" id="n-pending">—</div></div>
+    <div class="gb-win count"><div class="gb-label">Approved for tonight</div><div class="num gb-lamp" id="n-approved">—</div></div>
+    <div class="gb-win count"><div class="gb-label">Next GM retrain</div><div class="num">Tonight</div></div>
+  </div>
+
+  <div class="bar2"><h2>Pending corrections</h2><button class="gb-btn" id="all">Approve all</button></div>
+  <div class="gb-win">
+    <div class="bar"><i></i><i></i><i></i><span>corrections-pending.jsonl</span></div>
+    <div class="body" id="list"></div>
+  </div>
+  <p class="gb-cap">Approved rows go to <code>data/corrections.jsonl</code>, the only file GM's nightly retrain reads.</p>
+</div></div>
+<script src="/shell.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+  async function load() {
+    const { pending, approved } = await (await fetch('/api/pending')).json();
+    $('n-pending').textContent = pending.length;
+    $('n-approved').textContent = approved;
+    $('all').disabled = pending.length === 0;
+    $('list').innerHTML = pending.length ? pending.map((r, i) => `
+      <div class="gb-row item">
+        <div>
+          <div class="prompt">“${esc(r.prompt)}”</div>
+          <div class="route">GM → ${r.gm_answer ? `<span class="was">${esc(r.gm_answer)}</span>` : '<span class="was">(no route)</span>'} &nbsp;·&nbsp; correct → <span class="now">${esc(r.correct_answer)}</span></div>
+          <div class="who">from ${esc(r.by || 'slack')} · ${new Date(r.ts).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })}</div>
+        </div>
+        <div class="meta"><button class="gb-seg approve" data-i="${i}">Approve</button></div>
+      </div>`).join('') : '<div class="empty">No corrections waiting. React 👎 to a GM route in Slack to add one.</div>';
+  }
+
+  async function approve(indexes, rows) {
+    rows.forEach((r) => r.classList.add('gone'));
+    await new Promise((r) => setTimeout(r, 300));
+    await fetch('/api/approve', { method:'POST', headers:{ 'content-type':'application/json' }, body:JSON.stringify({ indexes }) });
+    load();
+  }
+
+  $('list').onclick = (e) => {
+    const b = e.target.closest('.approve');
+    if (b) approve([Number(b.dataset.i)], [b.closest('.item')]);
+  };
+  $('all').onclick = () => approve(undefined, [...document.querySelectorAll('.item')]);
+  load();
+  setInterval(load, 3000); // new Slack corrections appear live
+</script>
+</body>
+</html>

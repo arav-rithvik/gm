@@ -15,3 +15,4 @@ node_modules/
 # generated data and local GBrain checkout
 vendor/
 data/skills.json
+data/corrections-pending*.jsonl

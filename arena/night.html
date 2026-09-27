@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GM Tonight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/gbrain.css">
+<style>
+  .step { opacity:.25; transform:translateX(-6px); transition:opacity .5s, transform .5s; }
+  .step.shown { opacity:1; transform:none; }
+  .dot { width:34px; height:34px; border-radius:9px; flex:none; display:grid; place-items:center; font:700 15px 'JetBrains Mono', monospace; background:var(--gb-row); color:var(--gb-muted); border:1px solid var(--gb-card-line); }
+  .name { font-size:18px; font-weight:600; }
+  .detail { font:500 14px 'JetBrains Mono', monospace; color:var(--gb-muted); }
+  .done .dot { background:var(--gb-lamp); color:#1a1206; border-color:var(--gb-lamp); box-shadow:0 0 18px rgba(244,184,96,.5); }
+  .done .meta { color:var(--gb-lamp); }
+  .running .dot { color:var(--gb-peri); border-color:var(--gb-peri); animation:pulse 1.4s ease-in-out infinite; }
+  .running .meta { color:var(--gb-peri); }
+  .failed .dot, .rolled_back .dot { background:var(--gb-bad); color:#1a1206; border-color:var(--gb-bad); }
+  .failed .meta, .rolled_back .meta { color:var(--gb-bad); }
+  @keyframes pulse { 50% { box-shadow:0 0 0 7px rgba(169,193,238,.14); } }
+  .prompt { font-size:22px; font-weight:600; letter-spacing:-.01em; margin:6px 0 16px; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .col { border-radius:12px; padding:14px 16px; background:var(--gb-row); border:1px solid var(--gb-card-line); }
+  .ans { font:700 24px 'JetBrains Mono', monospace; margin-top:6px; word-break:break-word; }
+  .before .ans { color:var(--gb-bad); text-decoration:line-through; text-decoration-thickness:2px; }
+  .after { border-color:rgba(244,184,96,.6); box-shadow:0 0 28px rgba(244,184,96,.12); }
+  .ba { padding:18px 22px 22px; }
+  @media (max-width:760px) { .cols { grid-template-columns:1fr; } }
+</style>
+</head>
+<body class="gb" data-page="night">
+<div class="gb-main"><div class="gb-page">
+  <div class="gb-head"><h1>Tonight</h1><span class="right" id="night"></span></div>
+  <p class="gb-lede">While the team sleeps, GM trains on today's approved corrections. It ships only if it still passes yesterday's tests.</p>
+  <div class="gb-mock">MOCK DATA · not a real run</div>
+
+  <div class="gb-win">
+    <div class="bar"><i></i><i></i><i></i><span>Nightly retrain</span></div>
+    <div class="body" id="steps"></div>
+  </div>
+  <p class="gb-cap">Runs on River. If the regression gate fails, yesterday's GM stays live.</p>
+
+  <div class="gb-win">
+    <div class="bar"><i></i><i></i><i></i><span>Same request, yesterday's GM vs today's GM</span></div>
+    <div class="ba" id="ba"></div>
+  </div>
+</div></div>
+<script src="/shell.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  const STEPS = { collect:'Lessons collected', examples:'Examples built', train:'Training on River', gate:'Regression gate', promote:'GM promoted' };
+  const STATUS = { pending:'Waiting', running:'Running', done:'Done', failed:'Failed', rolled_back:'Rolled back' };
+  let last = '';
+
+  async function load() {
+    const text = await (await fetch('/api/night')).text();
+    if (text === last) return; // only re-animate when Arav's file changes
+    last = text;
+    const n = JSON.parse(text);
+    document.body.classList.toggle('is-mock', n.mock !== false);
+    $('night').textContent = n.night ? `Night ${n.night}` : '';
+
+    $('steps').innerHTML = n.steps.map((s, i) => `
+      <div class="gb-row step ${esc(s.status)}">
+        <div class="dot">${s.status === 'done' ? '✓' : i + 1}</div>
+        <div><div class="name">${esc(STEPS[s.id] || s.id)}</div><div class="detail">${esc(s.detail) || '&nbsp;'}</div></div>
+        <div class="meta">${esc(STATUS[s.status] || s.status)}</div>
+      </div>`).join('');
+    // Light the steps one after another, like the night moving on.
+    document.querySelectorAll('.step').forEach((el, i) => setTimeout(() => el.classList.add('shown'), 200 + i * 450));
+
+    const b = n.before_after || {};
+    $('ba').innerHTML = b.prompt
+      ? `<div class="prompt">“${esc(b.prompt)}”</div>
+         <div class="cols">
+           <div class="col before"><div class="gb-label">Yesterday's GM</div><div class="ans">${esc(b.before)}</div></div>
+           <div class="col after"><div class="gb-label">Today's GM</div><div class="ans gb-lamp">${esc(b.after)}</div></div>
+         </div>`
+      : '<p style="color:var(--gb-muted);margin:4px 0">No before/after yet. It appears when tonight\'s run promotes a new GM.</p>';
+  }
+  load();
+  setInterval(load, 3000);
+</script>
+</body>
+</html>
