@@ -2,16 +2,27 @@
 
 **GM = Garry's Model. Also: General Manager.**
 
-We took Garry Tan's entire stack (GBrain and GStack) and compiled it into his own open-weight model. GM does the work that GBrain does with Claude, but it is faster and cheaper, and Garry owns it. Every night, GM trains on the day's new skills and corrections, so it wakes up smarter than it went to sleep.
+GM has two parts:
 
-Built by Arav and Rithvik for the YC *Own Your Intelligence* Hackathon (Sep 27, 2026). It uses QM, GBrain, Memorable and River AI.
+1. **Part 1: GM learns how to use a brain.** We compile Garry's GBrain skills (routing, filing, page format, citations) into an open-weight model. It does the work GBrain does with Claude, but faster and cheaper, and you own it. It is the same for every company.
+2. **Part 2: GM learns how your company works, every night.** [Finegrain](https://github.com/edreisMD/finegrain) sends each employee's approved notes and corrections into the company GBrain. Every night, the model trains on them, **starting from GM**, and goes live only if it passes a gate.
+
+```
+Garry's skills ──train──▶ GM ──every night──▶ GM + your company
+   (Part 1)                      (Part 2: Finegrain)
+```
+
+Built by Arav, Rithvik and the Finegrain team for the YC *Own Your Intelligence* Hackathon (Sep 27, 2026). It uses QM, GBrain, Memorable and River AI.
 
 ---
 
-## The one line
+## The one sentence
 
-> **GBrain optimizes skills in text. GM compiles them into weights.**
-> Agent, memory, model: all yours.
+Say it word for word everywhere (README, video, form, pitch):
+
+> **"GBrain gets better the more it's used. Every correction your team makes becomes training data, and GM improves overnight."**
+
+The tagline: **GBrain optimizes skills in text. GM compiles them into weights.** Agent, memory, model: all yours.
 
 ---
 
@@ -95,7 +106,7 @@ The always-loaded text (resolver + filing rules + output rules) plus one loaded 
 
 ## How it works
 
-### Stage 1: Compile Garry's stack into GM
+### Part 1: Compile Garry's skills into GM
 
 **Goal:** turn GBrain and GStack into a specialized model.
 
@@ -122,35 +133,23 @@ The same prompt, in the same GBrain environment, on Garry's common tasks:
 
 We score all four on **Garry's own evals**. For example, `evals/functional-area-resolver`, where Garry already measured Opus, Sonnet and Haiku on a held-out set. We measure accuracy, latency, cost per task and prompt tokens.
 
-### Stage 2: GM improves itself every night
+### Part 2: GM learns your company every night (Finegrain)
 
-**Goal:** GM keeps fitting itself to the person or company it works for.
+**Goal:** GM keeps fitting itself to the company it works for.
 
-Every night, GM collects new training pairs from three sources and updates its weights.
+```
+employee's GBrain ──approved notes──▶ company GBrain ──every night──▶ train from GM ──▶ gate ──▶ promote
+```
 
-**1. Corrections from the day**
-- **Input:** the prompt the user sent, where the agent's answer did not satisfy them.
-- **Output:** the correct way to do it, based on the user's correction.
+1. **Capture.** A Mac menu-bar app reads each employee's agent sessions (Claude, Codex, Pi) and keeps only decisions and conventions. Only pages the employee marks as shared leave the laptop.
+2. **Company brain.** Shared pages land in the company GBrain. GBrain owns permissions and revisions.
+3. **Corrections.** A "Correct this" click in the Arena is saved as a shared GBrain page, so it enters the same nightly data. No extra glue code.
+4. **Train.** Every night, an open teacher model and a separate critic turn the new pages into training tasks: **procedure** (how we do X here), **abstention** (say "check the brain" when unsure) and **staleness** (prefer the newest version). Training starts from GM, so Part 2 builds on Part 1.
+5. **Gate.** The new model goes live only if it beats yesterday's model on held-out tests with no regressions. Otherwise it rolls back.
 
-**2. Memorable workflows**
-- **Input:** the task a user asks for, in any wording, with no workflow text in the prompt.
-- **Used only when** a machine can check the workflow and a human approved adding it. It scores higher if it is a rule, if it is used across tasks that look different, and if memory missed it.
-- **Output:** the correct result, done the way Memorable's saved workflow says. It counts only if it passes that workflow's verifying command.
-- **Gate:** after training, GM must also pass held-back rewordings with no regressions, or it **rolls back**.
+**Facts stay in the brain.** Part 2 trains *how the company works*, not *who is who*. A fact in the weights cannot be deleted or permission-checked, so fact-recall tasks stay small.
 
-**3. Skills added or edited**
-- **Input:** the prompt that would normally trigger the skill.
-- **Output:** the process of solving the problem or doing the task that the skill describes.
-- **A skill moves into the weights over time** when it:
-  - is used often
-  - is triggered by many different wordings
-  - describes a behavior, not exact steps
-  - is stable since the last training run
-- Skills that are new or still changing stay in text until they are stable. A wrong skill never gets burned into the weights.
-
-### Every morning
-
-The new GM goes live only if it beats yesterday's GM on the held-out set. If it does not, GM rolls back.
+**Both parts must use the same base model**, so that Part 2 can continue from GM's weights.
 
 ---
 
@@ -194,7 +193,7 @@ gm train --brain <any gbrain>
 | **GBrain** | The source: Garry's skills, rules, evals and corrections |
 | **GStack** | More of Garry's skills to compile |
 | **River AI** | Fine-tunes and serves GM; the weights stay ours |
-| **Memorable** | Records verified workflows that become training data every night |
+| **Memorable** | Records verified workflows (a future nightly training source) |
 | **QM** | The harness: routing, crons, corrections, and serving GM to the team |
 
 ---
@@ -207,7 +206,7 @@ gm train --brain <any gbrain>
 | 0:15 | "We compiled his whole stack into a model he owns. **GM: Garry's Model.**" |
 | 0:30 | **Split screen:** the same prompt in the same GBrain, Claude vs GM. Live timers and cost counters. |
 | 0:50 | **Scoreboard on Garry's own evals:** Claude, GPT, base model, GM. Accuracy, speed, cost, and prompt tokens (~12KB vs 0). |
-| 1:15 | **The night:** Garry corrects GM in QM → Memorable logs it → the night job trains → in the morning GM gets it right, and the regression gate is green. |
+| 1:15 | **The night (Part 2):** a teammate corrects GM → the correction becomes a shared brain page → Finegrain's night job trains from GM → in the morning GM gets it right, and the gate is green. |
 | 1:40 | **Owned:** the open weights, downloaded and portable. |
 | 1:50 | **Close:** "GBrain optimizes skills in text. GM compiles them into weights. Agent, memory, model: all yours." |
 
@@ -233,6 +232,7 @@ More nightly training sources, each with its own input, output and check:
 
 - [GBrain](https://github.com/garrytan/gbrain): skills, `skill-optimizer`, `skill-autobench`, `correction-pipeline`, `evals/`
 - [GStack](https://github.com/garrytan/gstack)
+- [Finegrain](https://github.com/edreisMD/finegrain): Part 2, the company capture and nightly training loop
 - [QM](https://github.com/yc-software/qm)
 - [Garry Tan: "your own agent, your own models, your own memory"](https://x.com/garrytan/status/2096283493764665350)
 - [gstack × gbrain Hackathon #1 recap](https://www.compiled.sh/articles/gstax-x-gbrain-hackathon-1)
