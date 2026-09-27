@@ -162,7 +162,7 @@ Eighteen fictional company pages and five previous versions exercise all four ta
 
 ## Repository
 
-`apps/macos/` contains the native menu-bar app; `deploy/` the official Gbrain/Postgres/GM Nightly Loop stack; `src/gm_nightly/` contains the adapters, relay, curriculum compiler, provider, evaluation and scheduling; `tests/` is the verification suite. See the [GM integration contract](docs/GM-INTEGRATION.md), [updated plan](docs/PLAN.md), [upstream contracts](docs/UPSTREAM.md), and [original project brief](docs/original-project-brief.md).
+`apps/macos/` contains the native menu-bar app; `deploy/` the official Gbrain/Postgres/GM Nightly Loop stack; `src/gm_nightly/` contains the adapters, relay, curriculum compiler, provider, evaluation and scheduling; `tests/` is the verification suite. See the [GM integration contract](docs/GM-INTEGRATION.md), [updated plan](docs/PLAN.md), and [upstream contracts](docs/UPSTREAM.md).
 
 This is an initial working framework. The local extractor is narrow, secret detection is best effort, and source-built Mac apps are not notarized. A failed upstream write retains its request ID for retry; if the source changes while that write is unresolved, the worker stops that publication for reconciliation rather than silently overwriting another revision. Future providers and per-user adapters are extension points, not shipped integrations.
 
