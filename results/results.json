@@ -1,6 +1,6 @@
 {
   "mock": false,
-  "generated_at": "2026-09-27T23:34:31Z",
+  "generated_at": "2026-09-27T23:36:17Z",
   "tasks": [
     "resolver-heldout",
     "routing-eval-heldout"
@@ -8,6 +8,10 @@
   "task_sizes": {
     "resolver-heldout": 5,
     "routing-eval-heldout": 283
+  },
+  "task_max_accuracy": {
+    "resolver-heldout": 0.6,
+    "routing-eval-heldout": 1.0
   },
   "models": [
     {
@@ -27,14 +31,14 @@
       "scores": {
         "resolver-heldout": {
           "accuracy": 0.6,
-          "p50_latency_ms": 1087,
+          "p50_latency_ms": 1248,
           "cost_per_task_usd": 0.000512,
           "n": 5
         },
         "routing-eval-heldout": {
           "accuracy": 0.8799,
-          "p50_latency_ms": 826,
-          "cost_per_task_usd": 0.000513,
+          "p50_latency_ms": 868,
+          "cost_per_task_usd": 0.000516,
           "n": 283
         }
       }
@@ -48,6 +52,7 @@
         "DeepInfra",
         "Parasail",
         "SiliconFlow",
+        "Together",
         "Venice"
       ],
       "reasoning": "off",
@@ -55,13 +60,13 @@
       "scores": {
         "resolver-heldout": {
           "accuracy": 0.2,
-          "p50_latency_ms": 699,
-          "cost_per_task_usd": 5e-06,
+          "p50_latency_ms": 573,
+          "cost_per_task_usd": 4e-06,
           "n": 5
         },
         "routing-eval-heldout": {
-          "accuracy": 0.0212,
-          "p50_latency_ms": 607,
+          "accuracy": 0.0177,
+          "p50_latency_ms": 640,
           "cost_per_task_usd": 5e-06,
           "n": 283
         }

@@ -234,6 +234,9 @@ def main() -> int:
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "tasks": list(tasks),
         "task_sizes": {t: len(f) for t, f in tasks.items()},
+        # share of cases whose answer is one of our skills; the rest no model here can hit
+        "task_max_accuracy": {t: round(sum(c["expected_skill"] in skill_names for c in f) / len(f), 4)
+                              for t, f in tasks.items()},
         "models": sorted(models.values(), key=lambda m: order.index(m["name"])),
         "garry_baselines": garry_baselines(args.gbrain),
         "garry_baselines_scoring": f"strict, held-out, {BASELINE_VARIANT} variant, 3 seeds",
