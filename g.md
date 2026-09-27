@@ -68,20 +68,20 @@
 - Per 1M tokens (prompt / completion / **training**): Qwen3.6-35B-A3B $0.33 / $0.82 / **$1.00** · Qwen3.5-122B-A10B $1.00 / $3.00 / **$4.00** · Qwen3.8-27B $1.80 / $5.50 / **$4.10**. Checkpoint storage $0.10/GB/month.
 - **Unknown, ask the River team at 1:00:** how long an SFT job takes, whether serving is OpenAI-compatible, whether a job can continue from an adapter, and whether hackathon credits exist.
 
-- [ ] **A1. Get accounts and keys:** River, Anthropic, OpenAI, Memorable, open teacher model. Put them in one `.env` and share it with Rithvik privately. **(15 min)**
-- [ ] **A2. Read the River docs** and write down the answers: **(20 min)**
+- [x] **A1. Get accounts and keys:** River, Anthropic, OpenAI, Memorable, open teacher model. Put them in one `.env` and share it with Rithvik privately. **(15 min)**
+- [x] **A2. Read the River docs** and write down the answers: **(20 min)**
   - Which open-weight models can we fine-tune? **Pick the best one.** That is GM's base.
   - What training data format? (Probably chat-style JSONL.)
   - How do we start a job, check its status, and get the endpoint?
   - Can a new job **continue from an existing adapter**? (The nightly loop needs this.)
   - Can we download the weights?
-- [ ] **A3. Run a tiny timing test:** 20 examples → start a job → **time how long it takes** → call the endpoint once. **This number sets the whole plan.** **(20 min + waiting)**
-- [ ] **A4. Check that Garry's resolver eval runs:** open `evals/functional-area-resolver/`, read `README.md`, and look at one baseline run so you know the scoring. **(15 min)**
-- [ ] **A5. Test Memorable:** `memorable --version`, then record and recall one tiny session so you know the commands. **(15 min)**
+- [x] **A3. Run a tiny timing test:** 20 examples → start a job → **time how long it takes** → call the endpoint once. **This number sets the whole plan.** **(20 min + waiting)**
+- [x] **A4. Check that Garry's resolver eval runs:** open `evals/functional-area-resolver/`, read `README.md`, and look at one baseline run so you know the scoring. **(15 min)**
+- [x] **A5. Test Memorable:** `memorable --version`, then record and recall one tiny session so you know the commands. **(15 min)**
 
 ## B. Kickoff with Rithvik — `0:00 → 0:10`
 
-- [ ] **B1. Agree on the 4 contract files together** (see "The contract" at the bottom). Commit the example versions to the repo so Rithvik can build against them. **(10 min)**
+- [x] **B1. Agree on the 4 contract files together** (see "The contract" at the bottom). Commit the example versions to the repo so Rithvik can build against them. **(10 min)**
 
 ## C. Stage 1: turn GBrain into training data and start training — `0:10 → 0:50`
 

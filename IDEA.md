@@ -60,17 +60,16 @@ GM is the weight-space version of the loop that Garry already runs.
 
 ## What GM learns (baked into weights)
 
-GM learns **7 behaviors** from GBrain's real files. Everything else stays as text or in the brain.
+GM learns **4 behaviors** from GBrain's real files. Everything else stays as text or in the brain.
+
+We picked these 4 because each one has a clear right answer that a machine can score. Brain-first lookup, enrichment judgment and output style are cut for now: they have no automatic check yet.
 
 | # | Behavior | Source in GBrain | What GM learns | Example |
 |---|---|---|---|---|
 | 1 | **Routing** | `RESOLVER.md` (~2,500 words, loaded on every call) | Request → the right skill, plus the disambiguation rules | "Create a page for John Smith from his GitHub" → `enrich` |
-| 2 | **Brain-first habit** | `brain-ops` (Phase 1: brain-first lookup) | Search the brain **before** answering or calling an outside API; pull context before every reply | "What do we know about Stripe?" → `gbrain query` first, not the web |
-| 3 | **Filing** | `_brain-filing-rules.md` (~1,400 words), `brain-taxonomist` | Decision protocol, common misfiling mistakes, notability gate | A book summary → the right `media/` folder, not `sources/` |
-| 4 | **Page format** | Two-layer pages, `frontmatter-guard` | Compiled truth (summary, State, Open Threads, See Also) above the line, a dated and sourced timeline below, valid YAML frontmatter | Raw meeting notes → a correctly shaped person-page update |
-| 5 | **Citations and back-links** | GBrain's "Iron Laws", `citation-fixer`, `brain-link-discipline` | Every fact has a source, every mention links `[[people/slug]]`, every new page is linked back | "CTO of Acme [source: call 2026-09-20]" + back-link |
-| 6 | **Enrichment judgment** | `enrich` (tiers, when and when **not** to enrich), `signal-detector` | Which signals matter, how deep to enrich, what to skip | A passing name in an email → a light touch, not a full research run |
-| 7 | **Output style** | `_output-rules.md` (no slop, exact phrasing kept, good titles, deterministic links), `briefing` | Garry's writing and briefing style | A daily briefing in the right sections, with no filler |
+| 2 | **Filing** | `_brain-filing-rules.md` (~1,400 words), `brain-taxonomist` | Decision protocol, common misfiling mistakes, notability gate | A book summary → the right `media/` folder, not `sources/` |
+| 3 | **Page format** | Two-layer pages, `frontmatter-guard` | Compiled truth (summary, State, Open Threads, See Also) above the line, a dated and sourced timeline below, valid YAML frontmatter | Raw meeting notes → a correctly shaped person-page update |
+| 4 | **Citations and back-links** | GBrain's "Iron Laws", `citation-fixer`, `brain-link-discipline` | Every fact has a source, every mention links `[[people/slug]]`, every new page is linked back | "CTO of Acme [source: call 2026-09-20]" + back-link |
 
 ### Not in weights
 
@@ -90,7 +89,7 @@ GM learns **7 behaviors** from GBrain's real files. Everything else stays as tex
 
 The always-loaded text (resolver + filing rules + output rules) plus one loaded skill is about **5,500–6,000 words, or roughly 7,000–8,000 tokens**, on every call. GM needs almost none of it. Only a short stub stays for safety rules.
 
-> **GM knows how to route, look up, file, format, cite, enrich and write the Garry way. It does not know *who* anyone is. It asks the brain.**
+> **GM knows how to route, file, format and cite the Garry way. It does not know *who* anyone is. It asks the brain.**
 
 ---
 
