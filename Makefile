@@ -5,8 +5,9 @@ PY          := .venv/bin/python
 PART2_DIR   := night/gm-nightly-loop
 PART2_PY    := $(PART2_DIR)/.venv/bin/python
 GM_NIGHT_CONFIG ?= $(PART2_DIR)/examples/gm-part2.toml
+ENV         := set -a; [ -f .env ] && . ./.env; set +a;
 
-.PHONY: setup data test quickstart part2-setup part2-demo part2-test night
+.PHONY: setup data routing behavior pairs test quickstart part2-setup part2-demo part2-test night
 
 setup: $(GBRAIN_DIR)
 	test -x .venv/bin/python || uv venv -q
@@ -18,6 +19,14 @@ $(GBRAIN_DIR):
 
 data: $(GBRAIN_DIR)
 	GBRAIN_DIR=$(GBRAIN_DIR) $(PY) data/parse_skills.py
+
+routing: data
+	$(ENV) GBRAIN_DIR=$(GBRAIN_DIR) $(PY) data/make_routing.py
+
+behavior: data
+	$(ENV) GBRAIN_DIR=$(GBRAIN_DIR) $(PY) data/make_behavior.py
+
+pairs: routing behavior
 
 test:
 	$(PY) -m pytest -q tests

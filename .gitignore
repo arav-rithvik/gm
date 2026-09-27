@@ -15,3 +15,6 @@ node_modules/
 # generated data and local GBrain checkout
 vendor/
 data/skills.json
+data/routing.jsonl
+data/routing-stats.json
+data/behavior.jsonl

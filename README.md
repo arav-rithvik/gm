@@ -22,6 +22,7 @@ Useful commands:
 
 ```bash
 make data         # compile Gbrain skills for Part 1
+make pairs        # write routing + behavior training pairs (needs the teacher keys in .env)
 make part2-demo   # generate SFT, RL and held-out data without credentials
 make part2-test   # run the GM Nightly Loop tests
 make night        # real River run from GM_CHECKPOINT
