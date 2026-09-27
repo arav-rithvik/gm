@@ -1,0 +1,40 @@
+{
+  "mock": true,
+  "generated_at": "2026-09-27T15:25:00Z",
+  "tasks": ["resolver-heldout", "page-format"],
+  "models": [
+    {
+      "name": "Claude",
+      "prompt_tokens": 0,
+      "scores": {
+        "resolver-heldout": { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 },
+        "page-format":      { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 }
+      }
+    },
+    {
+      "name": "GPT",
+      "prompt_tokens": 0,
+      "scores": {
+        "resolver-heldout": { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 },
+        "page-format":      { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 }
+      }
+    },
+    {
+      "name": "Base",
+      "prompt_tokens": 0,
+      "scores": {
+        "resolver-heldout": { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 },
+        "page-format":      { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 }
+      }
+    },
+    {
+      "name": "GM",
+      "prompt_tokens": 0,
+      "scores": {
+        "resolver-heldout": { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 },
+        "page-format":      { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 }
+      }
+    }
+  ],
+  "garry_baselines": { "opus": 0.0, "sonnet": 0.0, "haiku": 0.0 }
+}

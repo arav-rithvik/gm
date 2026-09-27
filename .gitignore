@@ -1,0 +1,16 @@
+# secrets
+.env
+
+# private planning + local clones (never public: QM source must not be copied in)
+qm/
+g.md
+IDEA.md
+AGENTS.md
+garry-judge-sim-prompt.md
+.playwright-mcp/
+
+# tooling
+.venv/
+__pycache__/
+node_modules/
+.DS_Store
