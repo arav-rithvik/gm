@@ -13,10 +13,12 @@ from gm_nightly.training import train_dataset
 class FakeProvider:
     def __init__(self, passed=True, fail=False):
         self.calls = []
+        self.baselines = []
         self.passed, self.fail = passed, fail
 
     def train(self, tasks, config, checkpoint=None, baseline=None):
         self.calls.append(checkpoint)
+        self.baselines.append(baseline)
         if self.fail:
             raise RuntimeError("Remote timeout")
         return {
@@ -57,6 +59,9 @@ def test_first_company_run_starts_from_gm(config, store):
     provider = FakeProvider()
     result = train_dataset(config, path, provider, store)
     assert provider.calls == ["river://gm/part-1"]
+    assert provider.baselines == [
+        {"student_model": config.student_model, "checkpoint": "river://gm/part-1"}
+    ]
     assert result["resume_strategy"] == "gm_foundation"
 
 
@@ -65,9 +70,19 @@ def test_gm_checkpoint_environment_contract(tmp_path, monkeypatch):
     profile.write_text("[gm]\ntenant = 'gm-company'\n")
     monkeypatch.setenv("GM_BASE_MODEL", "Qwen/Qwen3.5-9B")
     monkeypatch.setenv("GM_CHECKPOINT", "river://gm/part-1")
+    monkeypatch.setenv("GM_LORA_RANK", "16")
     config = load_config(profile)
     assert config.student_model == "Qwen/Qwen3.5-9B"
     assert config.foundation_checkpoint == "river://gm/part-1"
+    assert config.lora_rank == 16
+
+
+def test_bad_gm_lora_rank_fails(tmp_path, monkeypatch):
+    profile = tmp_path / "gm.toml"
+    profile.write_text("[gm]\ntenant = 'gm-company'\n")
+    monkeypatch.setenv("GM_LORA_RANK", "sixteen")
+    with pytest.raises(ValueError, match="GM_LORA_RANK"):
+        load_config(profile)
 
 
 def test_regression_is_not_promoted(config, store):
@@ -136,3 +151,24 @@ def test_revoked_sources_retire_parent(config, store):
     assert result["resume_strategy"] == "source_revised_or_removed"
     assert store.get("promoted") is None
     assert json.loads((config.workspace / "model.json").read_text())["status"] == "retired"
+
+
+def test_revoked_sources_compare_against_gm_foundation(config, store):
+    config.foundation_checkpoint = "river://gm/part-1"
+    path = real_manifest(config, store)
+    previous = train_dataset(config, path, FakeProvider(), store)
+    import json
+
+    source = Path(config.sources[0]["path"])
+    rows = [json.loads(line) for line in source.read_text().splitlines()]
+    changed_id = next(iter(previous["training_lineage"])).split(":", 1)[1]
+    write_jsonl(source, [row for row in rows if row["id"] != changed_id])
+    updated = compile_dataset(config, DemoTeacher(), store)
+    provider = FakeProvider(passed=False)
+
+    train_dataset(config, updated, provider, store)
+
+    assert provider.calls == ["river://gm/part-1"]
+    assert provider.baselines == [
+        {"student_model": config.student_model, "checkpoint": "river://gm/part-1"}
+    ]

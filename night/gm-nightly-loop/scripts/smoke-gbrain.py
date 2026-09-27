@@ -75,7 +75,7 @@ for employee, convention in [('alice', 'two reviewers'), ('bob', 'a staging smok
         raise AssertionError('Upstream write fence failed')
     print('PASS', employee, 'onboarding, compiled relay, duplicate retry, upstream write fence', flush=True)
 
-rows = json.loads(docker('gbrain', 'call', '--source', 'shared', 'list_pages', '{"source_id":"shared","tag":"gm-nightly-share","limit":100}'))
+rows = json.loads(docker('gbrain', 'call', '--source', 'shared', 'list_pages', '{"source_id":"shared","tag":"finegrain-share","limit":100}'))
 assert len(rows) == 3, len(rows)
 for row in rows:
     content = json.loads(docker('gbrain', 'call', '--source', 'shared', 'get_page', json.dumps({'slug':row['slug'],'source_id':'shared'})))

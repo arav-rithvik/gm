@@ -8,7 +8,7 @@ Each file has one writer. The other person only reads it.
 | 1 | `.env` (shape in `.env.example`) | Arav → Rithvik | Where GM lives: an OpenAI-compatible endpoint |
 | 2 | `results/results.json` | Arav → Rithvik | Benchmark scores for the Scoreboard |
 | 3 | `results/night-run.json` | Arav → Rithvik | Status of one nightly retrain, for the Night view |
-| 4 | `data/corrections.jsonl` | Rithvik → Arav | Fixes users make with the "correct this" button |
+| 4 | Approved company Gbrain page | Rithvik → GM Nightly Loop | Fixes users approve with the "Correct this" button |
 
 ## `"mock": true`
 
@@ -24,13 +24,14 @@ GM_MODEL=gm-v1
 GM_API_KEY=               # real value only in .env
 GM_BASE_MODEL=Qwen/Qwen3.5-9B
 GM_CHECKPOINT=river://...  # Part 1 training checkpoint; consumed by GM Nightly Loop
+GM_LORA_RANK=16            # adapter rank; must match Part 1
 RIVER_API_KEY=             # used only by the company training host
 ```
 
 Call it like any OpenAI chat endpoint: `POST {GM_BASE_URL}/chat/completions` with `model = GM_MODEL`.
 Until GM is trained, these point at the untrained base model (hand-off at `0:50`).
 
-`GM_BASE_MODEL` and `GM_CHECKPOINT` are the weight-training handoff between the two parts. The first company run evaluates and trains from that checkpoint. Later runs resume from the last promoted company checkpoint. `GM_MODEL` remains the serving name used by the Arena and QM.
+`GM_BASE_MODEL`, `GM_CHECKPOINT`, and `GM_LORA_RANK` are the weight-training handoff between the two parts. The first company run evaluates and trains from that checkpoint. Later runs resume from the last promoted company checkpoint. `GM_MODEL` remains the serving name used by the Arena and QM.
 
 ## 2. `results/results.json`
 
@@ -47,12 +48,24 @@ Until GM is trained, these point at the untrained base model (hand-off at `0:50`
 - `detail`: one short line of text for the UI.
 - `before_after`: the corrected prompt, yesterday's GM answer, today's GM answer.
 
-## 4. `data/corrections.jsonl`
+## 4. Approved correction page
 
-One JSON object per line. Append only. Never rewrite old lines.
+The Arena writes the request pattern and approved behavior through its scoped
+Gbrain connection. The page must use `visibility: brain-wide`, the
+`finegrain-share` tag, and `finegrain_training: true`. Do not copy the rejected
+model answer into the page.
 
-```json
-{ "ts": "2026-09-27T15:50:00Z", "prompt": "", "gm_answer": "", "correct_answer": "" }
+```markdown
+---
+title: Approved correction
+visibility: brain-wide
+tags: ["finegrain-share"]
+finegrain_training: true
+---
+
+Request pattern: ...
+Approved company behavior: ...
 ```
 
-The committed file is empty on purpose: every line in it is treated as a real correction and becomes training data.
+`data/corrections.jsonl` may remain as an append-only UI audit receipt, but it is
+not a training source. The company Gbrain page is authoritative.

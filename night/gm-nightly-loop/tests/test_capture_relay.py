@@ -7,7 +7,7 @@ from gm_nightly.brain import candidates, compile_session, scrub
 from gm_nightly.capture import TraceJournal, active_messages, project_row
 from gm_nightly.config import Config
 from gm_nightly.employee import relay, validate_server_url
-from gm_nightly.gbrain import shared_memory
+from gm_nightly.gbrain import correction_markdown, shared_memory
 from gm_nightly.models import canonical
 from gm_nightly.onboarding import write_config
 from gm_nightly.storage import Store
@@ -201,6 +201,30 @@ def test_only_explicit_compiled_pages_are_trainable(change):
     assert shared_memory(page(**change), "acme") is None
 
 
+def test_existing_finegrain_approval_is_trainable():
+    approved = page(frontmatter={"visibility": "brain-wide", "finegrain_training": True})
+    assert shared_memory(approved, "acme") is not None
+
+
+def test_correction_becomes_approved_gbrain_page_without_bad_answer():
+    markdown = correction_markdown(
+        "How do we ship a hotfix?",
+        "Open a reviewed pull request and get on-call approval.",
+    )
+    assert 'tags: ["finegrain-share"]' in markdown
+    assert "finegrain_training: true" in markdown
+    assert "Approved company behavior" in markdown
+    assert "Push directly to main" not in markdown
+
+
+def test_correction_rejects_secrets():
+    with pytest.raises(ValueError, match="secret"):
+        correction_markdown(
+            "Deploy this service",
+            "Use api_key=super-secret-value-123456789 during deployment.",
+        )
+
+
 def test_relay_whitelist_idempotency_and_withdrawal(tmp_path):
     config = Config(tenant="acme", employee_id="alice", company_home=str(tmp_path))
     local, company = FakeBrain([page()]), FakeBrain()
@@ -261,7 +285,7 @@ def test_employee_cycle_uses_native_ingest_and_real_brain_interface(tmp_path):
     result = employee_cycle(config, store, force=True, brain=local)
     assert result["compiled_sessions"] == 1
     assert len(local.ingested) == 1
-    assert "gm_training: true" in local.writes[0][1]
+    assert "finegrain_training: true" in local.writes[0][1]
     employee_cycle(config, store, force=True, brain=local)
     assert len(local.writes) == 1
     store.close()

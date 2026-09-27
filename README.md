@@ -27,4 +27,4 @@ make part2-test   # run the GM Nightly Loop tests
 make night        # real River run from GM_CHECKPOINT
 ```
 
-For a real night, copy `.env.example` to `.env`, keep secrets out of Git, and export `RIVER_API_KEY`, `GM_BASE_MODEL`, and the Part 1 `GM_CHECKPOINT`. See [CONTRACT.md](CONTRACT.md) for the exact handoff and [GM Nightly Loop](night/gm-nightly-loop/README.md) for employee and company installation.
+For a real night, copy `.env.example` to `.env`, keep secrets out of Git, and export `RIVER_API_KEY`, `GM_BASE_MODEL`, `GM_CHECKPOINT`, and `GM_LORA_RANK` from Part 1. See [CONTRACT.md](CONTRACT.md) for the exact handoff and [GM Nightly Loop](night/gm-nightly-loop/README.md) for employee and company installation.

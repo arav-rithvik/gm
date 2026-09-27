@@ -30,3 +30,35 @@ def test_failure_stage_uses_real_progress_markers():
     assert gm_night.failed_step("GM Nightly Loop: reinforcement learning") == "train"
     assert gm_night.failed_step("GM Nightly Loop: generating curriculum 2/3") == "examples"
     assert gm_night.failed_step("connection refused") == "collect"
+
+
+def test_before_after_prefers_a_real_improvement():
+    result = {
+        "before": {
+            "cases": [
+                {
+                    "id": "correction-1",
+                    "suite": "recall",
+                    "prompt": "How do we ship a hotfix?",
+                    "response": '{"answer":"Push directly"}',
+                    "score": 0,
+                }
+            ]
+        },
+        "after": {
+            "cases": [
+                {
+                    "id": "correction-1",
+                    "suite": "recall",
+                    "prompt": "How do we ship a hotfix?",
+                    "response": '{"answer":"Use a reviewed PR"}',
+                    "score": 1,
+                }
+            ]
+        },
+    }
+    assert gm_night.comparison(result) == {
+        "prompt": "How do we ship a hotfix?",
+        "before": '{"answer":"Push directly"}',
+        "after": '{"answer":"Use a reviewed PR"}',
+    }

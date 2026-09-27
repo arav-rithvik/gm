@@ -16,7 +16,11 @@ PYTHON = ROOT / "night/gm-nightly-loop/.venv/bin/python"
 STEPS = ("collect", "examples", "train", "gate", "promote")
 
 
-def write_status(night: int, states: dict[str, tuple[str, str]]) -> None:
+def write_status(
+    night: int,
+    states: dict[str, tuple[str, str]],
+    before_after: dict[str, str] | None = None,
+) -> None:
     payload = {
         "mock": False,
         "night": night,
@@ -28,7 +32,7 @@ def write_status(night: int, states: dict[str, tuple[str, str]]) -> None:
             }
             for step in STEPS
         ],
-        "before_after": {"prompt": "", "before": "", "after": ""},
+        "before_after": before_after or {"prompt": "", "before": "", "after": ""},
     }
     temporary = STATUS.with_suffix(".tmp")
     temporary.write_text(json.dumps(payload, indent=2) + "\n")
@@ -51,11 +55,36 @@ def failed_step(stderr: str) -> str:
     return "collect"
 
 
+def comparison(result: dict) -> dict[str, str]:
+    before = {case["id"]: case for case in result.get("before", {}).get("cases", [])}
+    after = result.get("after", {}).get("cases", [])
+    comparable = [
+        (before[case["id"]], case)
+        for case in after
+        if case.get("id") in before and case.get("suite") != "regression"
+    ]
+    if not comparable:
+        return {"prompt": "", "before": "", "after": ""}
+    prior, current = next(
+        (
+            pair
+            for pair in comparable
+            if pair[1].get("score", 0) > pair[0].get("score", 0)
+        ),
+        comparable[0],
+    )
+    return {
+        "prompt": current.get("prompt", prior.get("prompt", "")),
+        "before": prior.get("response", ""),
+        "after": current.get("response", ""),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True)
     args = parser.parse_args()
-    required = ("RIVER_API_KEY", "GM_BASE_MODEL", "GM_CHECKPOINT")
+    required = ("RIVER_API_KEY", "GM_BASE_MODEL", "GM_CHECKPOINT", "GM_LORA_RANK")
     missing = [key for key in required if not os.environ.get(key)]
     if missing:
         print("Missing environment variables: " + ", ".join(missing), file=sys.stderr)
@@ -63,7 +92,7 @@ def main() -> int:
     night = next_night()
     write_status(
         night,
-        {"collect": ("running", "Reading approved company Gbrain pages and corrections")},
+        {"collect": ("running", "Reading approved company Gbrain pages")},
     )
     command = [str(PYTHON), "-m", "gm_nightly", "--config", str(args.config), "run"]
     completed = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
@@ -86,6 +115,7 @@ def main() -> int:
                 "Candidate promoted" if passed else "Previous company checkpoint retained",
             ),
         },
+        comparison(result),
     )
     print(json.dumps(result, indent=2))
     return 0

@@ -197,7 +197,7 @@ def server_install(args):
                     "command": [args.gbrain_binary],
                     "home": str(Path(args.gbrain_home).resolve()),
                     "source_id": args.source,
-                    "tag": "gm-nightly-share",
+                    "tag": "finegrain-share",
                     "remote": args.remote,
                 }
             ],
