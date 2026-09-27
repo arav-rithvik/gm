@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This repo is **GM (Garry's Model)**, built by Arav, Rithvik and the Finegrain team at the YC *Own Your Intelligence* Hackathon.
+This repo is **GM (Garry's Model)**, built by Arav, Rithvik and the GM Nightly Loop team at the YC *Own Your Intelligence* Hackathon.
 
 Read **[IDEA.md](IDEA.md)** before doing anything: what GM is, its two parts, what goes into the weights, and how it works. **[CONTRACT.md](CONTRACT.md)** says how the parts connect.
 

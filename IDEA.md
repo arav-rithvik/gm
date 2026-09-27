@@ -5,14 +5,14 @@
 GM has two parts:
 
 1. **Part 1: GM learns how to use a brain.** We compile Garry's GBrain skills (routing, filing, page format, citations) into an open-weight model. It does the work GBrain does with Claude, but faster and cheaper, and you own it. It is the same for every company.
-2. **Part 2: GM learns how your company works, every night.** [Finegrain](https://github.com/edreisMD/finegrain) sends each employee's approved notes and corrections into the company GBrain. Every night, the model trains on them, **starting from GM**, and goes live only if it passes a gate.
+2. **Part 2: GM learns how your company works, every night.** [GM Nightly Loop](night/gm-nightly-loop) sends each employee's approved notes and corrections into the company GBrain. Every night, the model trains on them, **starting from GM**, and goes live only if it passes a gate.
 
 ```
 Garry's skills ──train──▶ GM ──every night──▶ GM + your company
-   (Part 1)                      (Part 2: Finegrain)
+   (Part 1)                   (Part 2: GM Nightly Loop)
 ```
 
-Built by Arav, Rithvik and the Finegrain team for the YC *Own Your Intelligence* Hackathon (Sep 27, 2026). It uses QM, GBrain, Memorable and River AI.
+Built by Arav, Rithvik and the GM Nightly Loop team for the YC *Own Your Intelligence* Hackathon (Sep 27, 2026). It uses QM, GBrain, Memorable and River AI.
 
 ---
 
@@ -133,7 +133,7 @@ The same prompt, in the same GBrain environment, on Garry's common tasks:
 
 We score all four on **Garry's own evals**. For example, `evals/functional-area-resolver`, where Garry already measured Opus, Sonnet and Haiku on a held-out set. We measure accuracy, latency, cost per task and prompt tokens.
 
-### Part 2: GM learns your company every night (Finegrain)
+### Part 2: GM learns your company every night (GM Nightly Loop)
 
 **Goal:** GM keeps fitting itself to the company it works for.
 
@@ -206,7 +206,7 @@ gm train --brain <any gbrain>
 | 0:15 | "We compiled his whole stack into a model he owns. **GM: Garry's Model.**" |
 | 0:30 | **Split screen:** the same prompt in the same GBrain, Claude vs GM. Live timers and cost counters. |
 | 0:50 | **Scoreboard on Garry's own evals:** Claude, GPT, base model, GM. Accuracy, speed, cost, and prompt tokens (~12KB vs 0). |
-| 1:15 | **The night (Part 2):** a teammate corrects GM → the correction becomes a shared brain page → Finegrain's night job trains from GM → in the morning GM gets it right, and the gate is green. |
+| 1:15 | **The night (Part 2):** a teammate corrects GM → the correction becomes a shared brain page → GM Nightly Loop trains from GM → in the morning GM gets it right, and the gate is green. |
 | 1:40 | **Owned:** the open weights, downloaded and portable. |
 | 1:50 | **Close:** "GBrain optimizes skills in text. GM compiles them into weights. Agent, memory, model: all yours." |
 
@@ -232,7 +232,7 @@ More nightly training sources, each with its own input, output and check:
 
 - [GBrain](https://github.com/garrytan/gbrain): skills, `skill-optimizer`, `skill-autobench`, `correction-pipeline`, `evals/`
 - [GStack](https://github.com/garrytan/gstack)
-- [Finegrain](https://github.com/edreisMD/finegrain): Part 2, the company capture and nightly training loop
+- [GM Nightly Loop](night/gm-nightly-loop): Part 2, the company capture and nightly training loop
 - [QM](https://github.com/yc-software/qm)
 - [Garry Tan: "your own agent, your own models, your own memory"](https://x.com/garrytan/status/2096283493764665350)
 - [gstack × gbrain Hackathon #1 recap](https://www.compiled.sh/articles/gstax-x-gbrain-hackathon-1)
