@@ -15,6 +15,7 @@ import urllib.request
 CLOSED_MODEL = re.compile(r"claude|anthropic|\bgpt|openai|\bo[1-9]\b", re.IGNORECASE)
 CLOSED_HOST = re.compile(r"anthropic\.com|openai\.com", re.IGNORECASE)
 RETRIES = 3
+MAX_TOKENS = 2048  # caps each reply; without it providers reserve credit for the model's max
 
 
 class TeacherError(Exception):
@@ -48,6 +49,7 @@ class Teacher:
                 {"role": "user", "content": user},
             ],
             "temperature": temperature,
+            "max_tokens": MAX_TOKENS,
         }).encode()
         request = urllib.request.Request(self.url, data=body, headers={
             "Content-Type": "application/json",
