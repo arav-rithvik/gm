@@ -22,10 +22,15 @@ Real runs write `"mock": false`.
 GM_BASE_URL=https://...   # from River
 GM_MODEL=gm-v1
 GM_API_KEY=               # real value only in .env
+GM_BASE_MODEL=Qwen/Qwen3.5-9B
+GM_CHECKPOINT=river://...  # Part 1 training checkpoint; consumed by GM Nightly Loop
+RIVER_API_KEY=             # used only by the company training host
 ```
 
 Call it like any OpenAI chat endpoint: `POST {GM_BASE_URL}/chat/completions` with `model = GM_MODEL`.
 Until GM is trained, these point at the untrained base model (hand-off at `0:50`).
+
+`GM_BASE_MODEL` and `GM_CHECKPOINT` are the weight-training handoff between the two parts. The first company run evaluates and trains from that checkpoint. Later runs resume from the last promoted company checkpoint. `GM_MODEL` remains the serving name used by the Arena and QM.
 
 ## 2. `results/results.json`
 
