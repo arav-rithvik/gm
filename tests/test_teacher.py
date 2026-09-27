@@ -25,3 +25,11 @@ def test_extract_json_finds_array_inside_prose():
     assert extract_json('Sure!\n```json\n["a", "b"]\n```') == ["a", "b"]
     with pytest.raises(TeacherError):
         extract_json("no json here")
+
+
+def test_chat_raises_on_empty_reply(monkeypatch):
+    teacher = Teacher("https://openrouter.ai/api/v1", "deepseek/deepseek-v4-pro", "key")
+    empty = {"choices": [{"message": {"content": None}, "finish_reason": "stop"}]}
+    monkeypatch.setattr(teacher, "_post", lambda request: empty)
+    with pytest.raises(TeacherError, match="empty reply"):
+        teacher.chat("system", "user")
