@@ -25,6 +25,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "data"))
 from leak_filter import LeakFilter, load_eval_intents, normalize  # noqa: E402
@@ -37,9 +38,10 @@ BASELINE_RUNS = {  # Garry's receipts, scored on the variant his SKILL.md ships
     "haiku": "2026-05-11-haiku-4-5.jsonl",
 }
 BASELINE_VARIANT = "functional-areas"
-MAX_TOKENS = 256
+MAX_TOKENS = 256  # reasoning is off, so a skill name fits easily
 RETRIES = 3
 THINK = re.compile(r"<think>.*?(</think>|$)", re.DOTALL | re.IGNORECASE)
+SKILL_PATH = re.compile(r"^skills/([a-z0-9-]+)/skill\.md$")  # RESOLVER.md names skills by path
 
 
 class BenchError(Exception):
@@ -51,6 +53,9 @@ def parse_answer(text: str, skill_names: set[str]) -> str:
     text = THINK.sub("", text or "")
     line = next((l for l in text.splitlines() if l.strip()), "")
     cleaned = line.strip().strip("`*\"'.,:;!?()[]{} \t").lower()
+    path = SKILL_PATH.match(cleaned)
+    if path:
+        cleaned = path.group(1)
     return cleaned if cleaned in skill_names else cleaned[:80]
 
 
@@ -121,6 +126,9 @@ def chat(ep: tuple[str, str, str], system: str, user: str) -> dict:
         "temperature": 0,
         "max_tokens": MAX_TOKENS,
         "usage": {"include": True},  # OpenRouter adds usage.cost; other providers ignore it
+        # Qwen3.5 thinks by default and spends the whole budget on it. GM is trained to
+        # answer directly, so every model answers directly.
+        "reasoning": {"enabled": False},
     }).encode()
     request = urllib.request.Request(url, data=body, headers={
         "Content-Type": "application/json", "Authorization": f"Bearer {key}"})
@@ -136,7 +144,8 @@ def chat(ep: tuple[str, str, str], system: str, user: str) -> dict:
             return {"text": data["choices"][0]["message"].get("content") or "",
                     "latency_ms": latency,
                     "prompt_tokens": usage.get("prompt_tokens"),
-                    "cost_usd": usage.get("cost")}
+                    "cost_usd": usage.get("cost"),
+                    "provider": data.get("provider")}
         except urllib.error.HTTPError as exc:
             error = f"HTTP {exc.code}: {exc.read().decode(errors='replace')[:300]}"
             if exc.code != 429 and exc.code < 500:
@@ -156,14 +165,16 @@ def run_model(name: str, ep, system: str, tasks: dict, skill_names: set[str], wo
                     "expected": fixture["expected_skill"], "predicted": predicted,
                     "correct": predicted == fixture["expected_skill"], "raw": reply["text"],
                     "latency_ms": round(reply["latency_ms"]), "prompt_tokens": reply["prompt_tokens"],
-                    "cost_usd": reply["cost_usd"]}
+                    "cost_usd": reply["cost_usd"], "provider": reply["provider"]}
         with ThreadPoolExecutor(workers) as pool:
             done = list(pool.map(one, fixtures))
         scores[task] = score(done)
         cases += done
         print(f"  {name} / {task}: {scores[task]['accuracy']:.1%} of {len(done)}")
     tokens = [c["prompt_tokens"] for c in cases if c["prompt_tokens"] is not None]
-    entry = {"name": name, "model_id": ep[1],
+    providers = sorted({c["provider"] for c in cases if c["provider"]})
+    entry = {"name": name, "model_id": ep[1], "served_via": urlparse(ep[0]).hostname,
+             "providers": providers, "reasoning": "off",
              "prompt_tokens": round(statistics.median(tokens)) if tokens else None,
              "scores": scores}
     return entry, cases
