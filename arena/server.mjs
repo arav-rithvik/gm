@@ -189,6 +189,19 @@ createServer(async (req, res) => {
       const skill = demoNight >= 1 ? 'auroville-build-a-pay' : 'daily-task-manager';
       return sendJson(res, 200, { skill, mock: false, demo: true, night: demoNight, ms: 140 + Math.round(Math.random() * 90), prompt_tokens: 38 });
     }
+    // Demo mode before GM's endpoint exists: a stand-in picks the route with
+    // Garry's eval prompt, so the Slack flow can be recorded end to end.
+    if (demoNight !== null && !GM_BASE_URL) {
+      const start = performance.now();
+      let out = '';
+      try {
+        await runClaude(text, (d) => (out += d.text ?? ''));
+        const skill = out.trim().split(/\s+/).pop().replace(/^[`"'\s]+|[`"'\s.]+$/g, '').toLowerCase();
+        return sendJson(res, 200, { skill, mock: false, demo: true, standIn: true, ms: Math.round(performance.now() - start) });
+      } catch (err) {
+        return sendJson(res, 502, { error: String(err.message ?? err) });
+      }
+    }
     let out = '';
     const start = performance.now();
     try {

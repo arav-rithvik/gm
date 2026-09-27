@@ -28,7 +28,7 @@ GM is an open-weight model trained on [GBrain](https://github.com/garrytan/gbrai
 4. **Tonight.** GM trains on the approved fix on River. A test gate checks that it didn't get worse at anything else. If it did, yesterday's GM stays live.
 5. **Tomorrow.** Same ask, new thread: `GM → auroville-build-a-pay`. Right the first time.
 
-> **Demo honesty:** Auroville is a made-up company for the demo. In demo mode (`POST /api/demo?night=0|1`), the two Build-A-Pay routes are scripted so the story plays in Slack. Every other request goes to GM, or shows `GM → not connected` when no endpoint is set. Real measured numbers are in [Results](#results) and `results/`.
+> **Demo honesty:** Auroville is a made-up company for the demo. In demo mode (`POST /api/demo?night=0|1`), the two Build-A-Pay routes are scripted so the story plays in Slack. Until GM's River endpoint is connected, demo mode also routes every other request with a stand-in (Claude with Garry's eval prompt), marked `standIn: true` in the response. With an endpoint set, every other request goes to GM. Real measured numbers are in [Results](#results) and `results/`.
 
 ---
 
