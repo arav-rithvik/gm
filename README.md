@@ -5,3 +5,13 @@
 GM is an open-weight model compiled from [GBrain](https://github.com/garrytan/gbrain)'s skills, named for the brain it was compiled from.
 
 Work in progress. See [CONTRACT.md](CONTRACT.md) for how the parts connect.
+
+## How to run
+
+Needs Python 3.11+, [uv](https://docs.astral.sh/uv/) and git.
+
+```sh
+make setup   # clone GBrain at a pinned commit, install Python deps
+make data    # build data/skills.json from GBrain's skills and rule files
+make test    # run the unit tests
+```

@@ -11,3 +11,7 @@ garry-judge-sim-prompt.md
 __pycache__/
 node_modules/
 .DS_Store
+
+# generated data and local GBrain checkout
+vendor/
+data/skills.json
