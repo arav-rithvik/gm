@@ -3,9 +3,6 @@
 
 # private planning + local clones (never public: QM source must not be copied in)
 qm/
-g.md
-IDEA.md
-AGENTS.md
 garry-judge-sim-prompt.md
 .playwright-mcp/
 
