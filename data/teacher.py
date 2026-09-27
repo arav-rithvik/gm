@@ -15,7 +15,7 @@ import urllib.request
 CLOSED_MODEL = re.compile(r"claude|anthropic|\bgpt|openai|\bo[1-9]\b", re.IGNORECASE)
 CLOSED_HOST = re.compile(r"anthropic\.com|openai\.com", re.IGNORECASE)
 RETRIES = 3
-MAX_TOKENS = 2048  # caps each reply; without it providers reserve credit for the model's max
+MAX_TOKENS = 4096  # caps each reply; without it providers reserve credit for the model's max
 
 
 class TeacherError(Exception):
@@ -42,7 +42,7 @@ class Teacher:
         )
 
     def chat(self, system: str, user: str, temperature: float = 0.9) -> str:
-        body = json.dumps({
+        payload = {
             "model": self.model,
             "messages": [
                 {"role": "system", "content": system},
@@ -50,7 +50,12 @@ class Teacher:
             ],
             "temperature": temperature,
             "max_tokens": MAX_TOKENS,
-        }).encode()
+        }
+        if "openrouter.ai" in self.url:
+            # Thinking tokens count toward max_tokens. On long pages the model spent the
+            # whole budget thinking and returned no content, so we turn thinking off.
+            payload["reasoning"] = {"enabled": False}
+        body = json.dumps(payload).encode()
         request = urllib.request.Request(self.url, data=body, headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
