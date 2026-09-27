@@ -1,40 +1,81 @@
 {
-  "mock": true,
-  "generated_at": "2026-09-27T15:25:00Z",
-  "tasks": ["resolver-heldout", "page-format"],
+  "mock": false,
+  "generated_at": "2026-09-27T23:34:31Z",
+  "tasks": [
+    "resolver-heldout",
+    "routing-eval-heldout"
+  ],
+  "task_sizes": {
+    "resolver-heldout": 5,
+    "routing-eval-heldout": 283
+  },
   "models": [
     {
-      "name": "Claude",
-      "prompt_tokens": 0,
+      "name": "Base + resolver",
+      "model_id": "qwen/qwen3.5-9b",
+      "served_via": "openrouter.ai",
+      "providers": [
+        "Darkbloom",
+        "DeepInfra",
+        "Parasail",
+        "SiliconFlow",
+        "Together",
+        "Venice"
+      ],
+      "reasoning": "off",
+      "prompt_tokens": 5109,
       "scores": {
-        "resolver-heldout": { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 },
-        "page-format":      { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 }
-      }
-    },
-    {
-      "name": "GPT",
-      "prompt_tokens": 0,
-      "scores": {
-        "resolver-heldout": { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 },
-        "page-format":      { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 }
+        "resolver-heldout": {
+          "accuracy": 0.6,
+          "p50_latency_ms": 1087,
+          "cost_per_task_usd": 0.000512,
+          "n": 5
+        },
+        "routing-eval-heldout": {
+          "accuracy": 0.8799,
+          "p50_latency_ms": 826,
+          "cost_per_task_usd": 0.000513,
+          "n": 283
+        }
       }
     },
     {
       "name": "Base",
-      "prompt_tokens": 0,
+      "model_id": "qwen/qwen3.5-9b",
+      "served_via": "openrouter.ai",
+      "providers": [
+        "Darkbloom",
+        "DeepInfra",
+        "Parasail",
+        "SiliconFlow",
+        "Venice"
+      ],
+      "reasoning": "off",
+      "prompt_tokens": 45,
       "scores": {
-        "resolver-heldout": { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 },
-        "page-format":      { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 }
-      }
-    },
-    {
-      "name": "GM",
-      "prompt_tokens": 0,
-      "scores": {
-        "resolver-heldout": { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 },
-        "page-format":      { "accuracy": 0.0, "p50_latency_ms": 0, "cost_per_task_usd": 0.0 }
+        "resolver-heldout": {
+          "accuracy": 0.2,
+          "p50_latency_ms": 699,
+          "cost_per_task_usd": 5e-06,
+          "n": 5
+        },
+        "routing-eval-heldout": {
+          "accuracy": 0.0212,
+          "p50_latency_ms": 607,
+          "cost_per_task_usd": 5e-06,
+          "n": 283
+        }
       }
     }
   ],
-  "garry_baselines": { "opus": 0.0, "sonnet": 0.0, "haiku": 0.0 }
+  "garry_baselines": {
+    "opus": 0.8667,
+    "sonnet": 1.0,
+    "haiku": 1.0
+  },
+  "garry_baselines_scoring": "strict, held-out, functional-areas variant, 3 seeds",
+  "leak_check": {
+    "training_pairs": 2079,
+    "leaked": 0
+  }
 }
