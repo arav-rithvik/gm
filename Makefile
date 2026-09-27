@@ -4,7 +4,7 @@ GBRAIN_DIR  ?= vendor/gbrain
 PY          := .venv/bin/python
 ENV         := set -a; [ -f .env ] && . ./.env; set +a;
 
-.PHONY: setup data routing behavior pairs test
+.PHONY: setup data routing behavior pairs bench test
 
 setup: $(GBRAIN_DIR)
 	uv venv -q
@@ -24,6 +24,11 @@ behavior: data
 	$(ENV) GBRAIN_DIR=$(GBRAIN_DIR) $(PY) data/make_behavior.py
 
 pairs: routing behavior
+
+MODELS ?= Base + resolver,Base,GM
+
+bench: data
+	$(ENV) GBRAIN_DIR=$(GBRAIN_DIR) $(PY) bench/run_bench.py --models "$(MODELS)"
 
 test:
 	$(PY) -m pytest -q tests
