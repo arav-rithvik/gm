@@ -14,6 +14,10 @@ def test_parse_answer_strips_formatting_and_case():
     assert parse_answer("**enrich**\nbecause it enriches", SKILLS) == "enrich"
 
 
+def test_parse_answer_reads_resolver_style_skill_path():
+    assert parse_answer("`skills/skill-creator/SKILL.md`", SKILLS) == "skill-creator"
+
+
 def test_parse_answer_drops_think_block():
     assert parse_answer("<think>maybe enrich?</think>\nskillify", SKILLS) == "skillify"
     assert parse_answer("<think>never closed enrich", SKILLS) == ""
