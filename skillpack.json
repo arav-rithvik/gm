@@ -1,0 +1,13 @@
+{
+  "name": "gm",
+  "version": "0.1.0",
+  "description": "Compile GBrain's skills into an open-weight model, then retrain it every night on approved team corrections.",
+  "author": "arav-rithvik",
+  "license": "MIT",
+  "requires": { "gbrain": ">=0.37.0" },
+  "skills": ["skills/gm-compile", "skills/gm-night"],
+  "evals": ["evals/routing-eval.jsonl"],
+  "changelog": "CHANGELOG.md",
+  "runbook": "docs/BOOTSTRAP.md",
+  "tags": ["model", "routing", "training", "river", "qm"]
+}

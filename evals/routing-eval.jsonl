@@ -1,0 +1,6 @@
+{"intent": "compile my gbrain skills into my own model", "expected_skill": "gm-compile"}
+{"intent": "train gm on river", "expected_skill": "gm-compile"}
+{"intent": "how accurate is my own routing model on garry's eval", "expected_skill": "gm-compile"}
+{"intent": "retrain gm tonight with what the team fixed", "expected_skill": "gm-night"}
+{"intent": "run the nightly training loop", "expected_skill": "gm-night"}
+{"intent": "did last night's gm pass the gate", "expected_skill": "gm-night"}
