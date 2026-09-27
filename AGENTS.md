@@ -1,13 +1,8 @@
 # AGENTS.md
 
-This repo is **GM (Garry's Model)**, built by Arav and Rithvik at the YC *Own Your Intelligence* Hackathon.
+This repo is **GM (Garry's Model)**, built by Arav, Rithvik and the Finegrain team at the YC *Own Your Intelligence* Hackathon.
 
-Read these two files before doing anything:
-
-- **[IDEA.md](IDEA.md):** the idea: what GM is, why it matters, what goes into the weights, and how it works.
-- **[g.md](g.md):** how we build it at this hackathon: the ordered checklist, who does what (Arav / Rithvik), the hand-offs, the contract files, and the rules.
-
-If the two files disagree, **g.md wins**. It is the newer, verified plan.
+Read **[IDEA.md](IDEA.md)** before doing anything: what GM is, its two parts, what goes into the weights, and how it works. **[CONTRACT.md](CONTRACT.md)** says how the parts connect.
 
 ## Rules for every agent
 
@@ -19,7 +14,7 @@ If the two files disagree, **g.md wins**. It is the newer, verified plan.
 
 ## Commits, PRs and repo layout
 
-Garry's grader reads the repo: code quality, commit history, and whether it runs (see "How Garry picks the winner → Read 1" in [g.md](g.md)). A clean repo with steady, small commits is part of how we win. Follow these rules.
+Garry's grader reads the repo: code quality, commit history, and whether it runs. A clean repo with steady, small commits is part of how we win. Follow these rules.
 
 ### Commits: small, frequent, clean
 
@@ -42,12 +37,12 @@ Garry's grader reads the repo: code quality, commit history, and whether it runs
 
 ### Repo layout: a GBrain skillpack
 
-g.md says to package GM as a **GBrain skillpack** that passes `gbrain skillpack doctor`. Keep this shape. Put each new file in the right folder. Do not put loose scripts in the root.
+Package GM as a **GBrain skillpack** that passes `gbrain skillpack doctor`. Keep this shape. Put each new file in the right folder. Do not put loose scripts in the root.
 
 ```
 gm/
 ├── README.md          # title · one sentence · video · 3 screenshots · key numbers · how to run · architecture · results · license
-├── AGENTS.md  IDEA.md  g.md  CONTRACT.md
+├── AGENTS.md  IDEA.md  CONTRACT.md
 ├── CHANGELOG.md       # one line per real change
 ├── LICENSE
 ├── Makefile           # make data · make train · make bench · make night
